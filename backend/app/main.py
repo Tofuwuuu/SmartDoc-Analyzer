@@ -1,29 +1,28 @@
-import os
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+import os
 
-app = FastAPI()
+from app.api.routes import router as api_router
 
+app = FastAPI(title="SmartDoc Analyzer API")
+
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "temp_uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Include API routes
+app.include_router(api_router, prefix="/api")
+
+# Mount static files for uploads
+os.makedirs("uploads", exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
-def read_root():
-    return {"message": "Welcome to SmartDoc Analyzer API!"}
-
-@app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    file_location = os.path.join(UPLOAD_DIR, file.filename)
-    with open(file_location, "wb") as f:
-        content = await file.read()
-        f.write(content)
-    return JSONResponse({"success": True, "filename": file.filename, "path": file_location}) 
+async def root():
+    return {"message": "Welcome to SmartDoc Analyzer API"} 

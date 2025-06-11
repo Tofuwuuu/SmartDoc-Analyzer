@@ -1,3 +1,15 @@
-fastapi
-uvicorn
-python-multipart 
+# Core dependencies
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart>=0.0.6
+pytesseract>=0.3.10
+Pillow>=9.5.0
+pymupdf>=1.22.5
+sqlalchemy>=2.0.20
+numpy>=1.21.0
+
+# AI/ML dependencies
+torch>=2.0.0
+transformers>=4.30.0
+spacy>=3.5.0
+scikit-learn>=1.0.0 

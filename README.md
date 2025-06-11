@@ -1,29 +1,99 @@
 # SmartDoc Analyzer
 
-SmartDoc Analyzer is a cloud-based document intelligence platform that leverages AI to extract insights from uploaded documents (PDFs, images). It enables users to upload documents, automatically extract text using OCR, and perform advanced analyses such as sentiment analysis, key information extraction, document classification, and summarization.
+A cloud-based document intelligence platform that extracts insights from uploaded documents (PDFs, images) using AI.
 
 ## Features
-- **Document Upload & OCR:** Upload PDFs or images and extract text using Tesseract OCR.
-- **AI-Powered Analysis:**
-  - Sentiment analysis (detect positive/negative language)
-  - Key information extraction (names, dates, amounts)
-  - Document classification (e.g., resume, contract, article)
-  - Abstractive summarization
-- **Visual Dashboard:** Interactive results display with charts and highlights.
-- **Downloadable Reports:** Export analysis results.
-- **Searchable Document History:** Quickly find and review past uploads.
-- **User Accounts (Optional):** Secure login and saved document history.
+
+- Document Upload & OCR
+  - Accept PDF/images via drag-and-drop UI
+  - Extract text using OCR and PyMuPDF
+
+- Document Analysis
+  - Extract text from documents
+  - Optical Character Recognition (OCR) for images
+
+- Interactive UI
+  - Modern React frontend with Tailwind CSS
+  - Real-time document processing
+  - Responsive design
 
 ## Tech Stack
-- **Frontend:** React.js + Tailwind CSS (Vite)
-- **Backend:** Python FastAPI
-- **AI Engine:** PyTorch/TensorFlow, Hugging Face Transformers, Tesseract OCR
-- **Storage:** SQLite (local) / PostgreSQL (cloud)
-- **Cloud:** Netlify/Vercel (frontend), Fly.io (backend)
+
+- **Frontend**: React.js + TypeScript + Tailwind CSS
+- **Backend**: Python FastAPI
+- **Document Processing**: PyMuPDF, Tesseract OCR
+- **Storage**: SQLite (local) / PostgreSQL (production)
 
 ## Getting Started
-1. Clone the repository
-2. See `frontend/` and `backend/` folders for setup instructions
+
+### Prerequisites
+
+- Node.js (v14+)
+- Python (v3.7+)
+- Tesseract OCR installed on your system
+
+### Setup Backend
+
+```bash
+cd backend
+python -m venv venv
+# On Windows
+venv\Scripts\activate
+# On macOS/Linux
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Setup Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+### Running the Application
+
+**Backend:**
+```bash
+cd backend
+# Activate virtual environment
+python run.py
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm start
+```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+
+## Project Structure
+
+```
+smartdoc-analyzer/
+├── frontend/               # React frontend
+│   ├── public/
+│   └── src/
+│       ├── components/     # React components
+│       ├── context/        # React context for state management
+│       └── ...
+├── backend/                # FastAPI backend
+│   ├── app/
+│   │   ├── api/            # API routes
+│   │   ├── models/         # Data models
+│   │   ├── services/       # Business logic
+│   │   └── ...
+│   ├── uploads/            # Uploaded documents
+│   └── ...
+└── ...
+```
+
+## License
+
+This project is licensed under the MIT License.
 
 ---
 
