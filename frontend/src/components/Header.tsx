@@ -1,5 +1,6 @@
 import React from 'react';
 import './Header.css';
+import ThemeToggle from './ui/ThemeToggle';
 
 const Header: React.FC = () => {
   return (
@@ -26,7 +27,8 @@ const Header: React.FC = () => {
               <p className="subtitle">AI-powered Document Intelligence Platform</p>
             </div>
           </div>
-          <div>
+          <div className="header-actions">
+            <ThemeToggle />
             <a 
               href="https://github.com" 
               target="_blank"

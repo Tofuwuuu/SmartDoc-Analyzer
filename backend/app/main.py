@@ -4,6 +4,11 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from app.api.routes import router as api_router
+from app.db.database import engine
+from app.db.models import Base
+
+# Create all database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SmartDoc Analyzer API")
 

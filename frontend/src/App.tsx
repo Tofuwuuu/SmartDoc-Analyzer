@@ -4,29 +4,33 @@ import Header from './components/Header';
 import DocumentUploader from './components/DocumentUploader';
 import ResultsDisplay from './components/ResultsDisplay';
 import { DocumentProvider } from './context/DocumentContext';
+import { ThemeProvider } from './context/ThemeContext';
+import './components/visualizations/visualizations.css';
 
 function App() {
   return (
-    <div className="app-container">
+    <ThemeProvider>
       <DocumentProvider>
-        <Header />
-        <main className="main-content">
-          <div className="content-grid">
-            <div className="uploader-container">
-              <DocumentUploader />
+        <div className="app-container">
+          <Header />
+          <main className="main-content">
+            <div className="content-grid">
+              <div className="uploader-container">
+                <DocumentUploader />
+              </div>
+              <div className="results-container">
+                <ResultsDisplay />
+              </div>
             </div>
-            <div className="results-container">
-              <ResultsDisplay />
+          </main>
+          <footer className="footer">
+            <div className="footer-content">
+              <p>SmartDoc Analyzer - Document Intelligence Platform</p>
             </div>
-          </div>
-        </main>
-        <footer className="footer">
-          <div className="footer-content">
-            <p>SmartDoc Analyzer - Document Intelligence Platform</p>
-          </div>
-        </footer>
+          </footer>
+        </div>
       </DocumentProvider>
-    </div>
+    </ThemeProvider>
   );
 }
 

@@ -1,10 +1,8 @@
-from transformers import pipeline
-import torch
+"""
+Simplified entity extractor that doesn't depend on external ML libraries.
+"""
 import re
 from collections import Counter
-
-# Use a named entity recognition model
-MODEL_NAME = "dslim/bert-base-NER"
 
 class EntityExtractor:
     _instance = None
@@ -16,24 +14,21 @@ class EntityExtractor:
         return EntityExtractor._instance
     
     def __init__(self):
-        # Initialize the NER pipeline
-        self.ner = None
-    
-    def _load_model(self):
-        if self.ner is None:
-            print("Loading named entity recognition model...")
-            self.ner = pipeline("ner", model=MODEL_NAME, aggregation_strategy="simple")
-            print("Named entity recognition model loaded.")
+        print("Initializing simple entity extractor")
+        
+        # Define regex patterns for common entities
+        self.patterns = {
+            "email": r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            "phone": r'\b(?:\+\d{1,2}\s?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b',
+            "url": r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+[/\w\.-]*\??[/\w\.-]*',
+            "date": r'\b(?:\d{1,2}[/\.-]\d{1,2}[/\.-]\d{2,4})|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},?\s+\d{4}\b',
+            "money": r'\$\s?\d+(?:\.\d{2})?(?:k|K|m|M|b|B)?|\d+\s?(?:dollars|USD|EUR|GBP)'
+        }
     
     async def extract_entities(self, text):
         """
-        Extract named entities from the text
-        
-        Args:
-            text (str): Text to analyze
-            
-        Returns:
-            dict: Extracted entities by category
+        Simple regex-based entity extraction without ML dependencies.
+        Extracts emails, phone numbers, URLs, dates, and monetary values.
         """
         if not text or len(text.strip()) < 10:
             return {
@@ -42,107 +37,28 @@ class EntityExtractor:
                 "message": "Text too short for entity extraction"
             }
         
-        # Load model on first use
-        if self.ner is None:
-            self._load_model()
+        entities = {}
+        counts = {}
         
-        try:
-            # For long documents, process in chunks
-            if len(text) > 5000:
-                chunks = self._split_text(text)
-                all_entities = []
-                
-                for chunk in chunks:
-                    if len(chunk.strip()) > 10:
-                        chunk_entities = self.ner(chunk)
-                        all_entities.extend(chunk_entities)
-            else:
-                all_entities = self.ner(text)
-            
-            # Group entities by type
-            entities_by_type = {}
-            for entity in all_entities:
-                entity_type = entity["entity_group"]
-                entity_text = entity["word"]
-                score = entity["score"]
-                
-                # Skip low confidence predictions
-                if score < 0.7:
-                    continue
-                
-                # Clean up entity text
-                entity_text = self._clean_entity_text(entity_text)
-                if not entity_text:
-                    continue
-                
-                if entity_type not in entities_by_type:
-                    entities_by_type[entity_type] = []
-                
-                # Add if not duplicate
-                if entity_text not in entities_by_type[entity_type]:
-                    entities_by_type[entity_type].append(entity_text)
-            
-            # Get counts by entity type
-            entity_counts = {etype: len(entities) for etype, entities in entities_by_type.items()}
-            
-            # Prepare response
-            result = {
-                "entities": entities_by_type,
-                "counts": entity_counts,
-                "message": f"Extracted {sum(entity_counts.values())} entities across {len(entity_counts)} categories"
-            }
-            
-            # Add summary for common entity types
-            if "PER" in entities_by_type:
-                result["people"] = entities_by_type["PER"]
-            if "ORG" in entities_by_type:
-                result["organizations"] = entities_by_type["ORG"]
-            if "LOC" in entities_by_type:
-                result["locations"] = entities_by_type["LOC"]
-            
-            return result
-            
-        except Exception as e:
-            return {
-                "entities": {},
-                "counts": {},
-                "message": f"Error extracting entities: {str(e)}"
-            }
-    
-    def _split_text(self, text, chunk_size=1000):
-        """Split text into chunks for processing"""
-        # Split by sentences to avoid cutting in the middle of entities
-        sentences = re.split(r'(?<=[.!?])\s+', text)
-        chunks = []
-        current_chunk = []
-        current_length = 0
+        # Extract entities using regex patterns
+        for entity_type, pattern in self.patterns.items():
+            matches = re.findall(pattern, text)
+            if matches:
+                entities[entity_type] = list(set(matches))  # Remove duplicates
+                counts[entity_type] = len(entities[entity_type])
         
-        for sentence in sentences:
-            sentence_length = len(sentence)
-            
-            if current_length + sentence_length <= chunk_size:
-                current_chunk.append(sentence)
-                current_length += sentence_length
-            else:
-                chunks.append(' '.join(current_chunk))
-                current_chunk = [sentence]
-                current_length = sentence_length
+        # Look for possible names (simple heuristic for capitalized words)
+        name_candidates = re.findall(r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b', text)
+        if name_candidates:
+            entities["possible_names"] = list(set(name_candidates))
+            counts["possible_names"] = len(entities["possible_names"])
         
-        if current_chunk:
-            chunks.append(' '.join(current_chunk))
-        
-        return chunks
-    
-    def _clean_entity_text(self, text):
-        """Clean up extracted entity text"""
-        # Remove special tokens and extra whitespace
-        text = re.sub(r'##', '', text)
-        text = re.sub(r'\s+', ' ', text).strip()
-        
-        # Remove common punctuation at the edges
-        text = re.sub(r'^[.,;:\'\"()[\]{}]|[.,;:\'\"()[\]{}]$', '', text).strip()
-        
-        return text
+        # Return extracted entities
+        return {
+            "entities": entities,
+            "counts": counts,
+            "message": "Entities extracted using regex patterns"
+        }
 
 # Get the singleton instance
 entity_extractor = EntityExtractor.get_instance() 

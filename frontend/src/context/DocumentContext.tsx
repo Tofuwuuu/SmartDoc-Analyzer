@@ -8,6 +8,7 @@ export interface DocumentResult {
   content_type: string;
   text_content: string;
   analysis_type: string;
+  processed_at?: string;
   analysis_results?: Record<string, any>;
 }
 
