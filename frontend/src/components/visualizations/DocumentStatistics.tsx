@@ -45,6 +45,11 @@ const DocumentStatistics: React.FC<DocumentStatisticsProps> = ({ text }) => {
 
   const topWords = getTopWords();
 
+  // Calculate the max count for scaling bar widths
+  const maxCount = topWords.length > 0 
+    ? Math.max(...topWords.map(([, count]) => count as number)) 
+    : 0;
+
   return (
     <div className="document-statistics-container">
       <h3 className="section-title">Document Statistics</h3>
@@ -75,13 +80,29 @@ const DocumentStatistics: React.FC<DocumentStatisticsProps> = ({ text }) => {
         <div className="top-words-section">
           <h4 className="subsection-title">Top Words</h4>
           <div className="top-words-container">
-            {topWords.map(([word, count], index) => (
-              <div key={word} className="top-word-item">
-                <div className="top-word-rank">{index + 1}</div>
-                <div className="top-word-text">{word}</div>
-                <div className="top-word-count">{count}</div>
-              </div>
-            ))}
+            {topWords.map(([word, count], index) => {
+              const percentage = maxCount ? (count as number) / maxCount * 100 : 0;
+              
+              return (
+                <div key={word} className="top-word-item">
+                  <div className="top-word-rank">
+                    <span className="rank-number">{index + 1}</span>
+                  </div>
+                  <div className="top-word-details">
+                    <div className="top-word-header">
+                      <span className="top-word-text">{word}</span>
+                      <span className="top-word-count">{count}</span>
+                    </div>
+                    <div className="top-word-bar-container">
+                      <div 
+                        className="top-word-bar" 
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
