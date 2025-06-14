@@ -4,6 +4,10 @@ import { ThemeContext } from '../context/ThemeContext';
 import FileInfoCard from './ui/FileInfoCard';
 import EntityVisualization from './visualizations/EntityVisualization';
 import DocumentStatistics from './visualizations/DocumentStatistics';
+import ConfidenceMetrics from './visualizations/ConfidenceMetrics';
+import SentimentVisualization from './visualizations/SentimentVisualization';
+import EnhancedEntityVisualization from './visualizations/EnhancedEntityVisualization';
+import AIInsights from './visualizations/AIInsights';
 import './ResultsDisplay.css';
 
 const ResultsDisplay: React.FC = () => {
@@ -95,10 +99,35 @@ const ResultsDisplay: React.FC = () => {
 
   // Destructure AI analysis results if available
   const aiResults = documentResult.analysis_results || {};
-  const hasSentiment = aiResults.sentiment;
-  const hasSummary = aiResults.summary && aiResults.summary.summary;
-  const hasClassification = aiResults.classification;
-  const hasEntities = aiResults.entities && Object.keys(aiResults.entities.entities || {}).length > 0;
+  
+  // Debug logging
+  console.log('Document Result:', documentResult);
+  console.log('AI Analysis Results:', aiResults);
+  
+  // Parse JSON strings if necessary
+  const parseJsonIfString = (value: any) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        console.error('Failed to parse JSON string:', e);
+        return value;
+      }
+    }
+    return value;
+  };
+  
+  // Get parsed entities
+  const sentiment = parseJsonIfString(aiResults.sentiment);
+  const entities = parseJsonIfString(aiResults.entities);
+  const summary = parseJsonIfString(aiResults.summary);
+  const classification = parseJsonIfString(aiResults.classification);
+  
+  // Check if AI results are available
+  const hasSentiment = !!sentiment;
+  const hasSummary = !!summary && summary.summary;
+  const hasClassification = !!classification;
+  const hasEntities = !!entities && Object.keys(entities.entities || {}).length > 0;
   const hasAiResults = hasSentiment || hasSummary || hasClassification || hasEntities;
 
   // Get timestamp for the processed document if available
@@ -120,12 +149,34 @@ const ResultsDisplay: React.FC = () => {
         timestamp={timestamp}
       />
 
-      {/* AI Analysis Section */}
+      {/* AI Insights Panel - NEW COMPONENT */}
       {hasAiResults && (
+        <AIInsights aiResults={aiResults} />
+      )}
+
+      {/* Extraction Confidence Metrics - NEW COMPONENT */}
+      <ConfidenceMetrics 
+        analysisType={documentResult.analysis_type} 
+        metrics={{
+          ocr_confidence: aiResults.confidence_metrics?.overall_confidence ? 
+            aiResults.confidence_metrics.overall_confidence * 100 : 
+            undefined,
+          extraction_accuracy: aiResults.confidence_metrics?.character_confidence?.average ? 
+            aiResults.confidence_metrics.character_confidence.average * 100 : 
+            undefined,
+          processing_time: aiResults.metrics?.processing_time || undefined
+        }}
+      />
+      
+      {/* Document Statistics */}
+      <DocumentStatistics text={documentResult.text_content} />
+
+      {/* AI Analysis Section */}
+      {hasAiResults ? (
         <div className="ai-analysis-section">
           <h3 className="section-title">AI Analysis Results</h3>
           
-          {/* Sentiment Analysis */}
+          {/* Sentiment Analysis - ENHANCED */}
           {hasSentiment && (
             <div className="result-card">
               <div className="result-card-header">
@@ -137,13 +188,13 @@ const ResultsDisplay: React.FC = () => {
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                    {aiResults.sentiment.label.toLowerCase() === 'positive' && (
+                    {sentiment.label.toLowerCase() === 'positive' && (
                       <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     )}
-                    {aiResults.sentiment.label.toLowerCase() === 'negative' && (
+                    {sentiment.label.toLowerCase() === 'negative' && (
                       <path d="M16 16s-1.5-2-4-2-4 2-4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     )}
-                    {aiResults.sentiment.label.toLowerCase() === 'neutral' && (
+                    {sentiment.label.toLowerCase() === 'neutral' && (
                       <path d="M8 15h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     )}
                     <path d="M9 9H9.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -151,26 +202,15 @@ const ResultsDisplay: React.FC = () => {
                   </svg>
                   Sentiment Analysis
                 </h4>
-                <div className={`sentiment-badge ${aiResults.sentiment.label.toLowerCase()}`}>
-                  {aiResults.sentiment.label}
+                <div className={`sentiment-badge ${sentiment.label.toLowerCase()}`}>
+                  {sentiment.label}
                 </div>
               </div>
               
-              <p className="result-message">{aiResults.sentiment.message}</p>
+              <p className="result-message">{sentiment.message || "Analysis of the document's emotional tone."}</p>
               
-              <div className="sentiment-gauge">
-                <div className="sentiment-bar-container">
-                  <div 
-                    className={`sentiment-bar ${aiResults.sentiment.label.toLowerCase()}`}
-                    style={{width: `${aiResults.sentiment.score * 100}%`}}
-                  />
-                </div>
-                <div className="sentiment-scale">
-                  <span>0%</span>
-                  <span>50%</span>
-                  <span>100%</span>
-                </div>
-              </div>
+              {/* New Sentiment Visualization Component */}
+              <SentimentVisualization sentiment={sentiment} />
             </div>
           )}
           
@@ -190,16 +230,16 @@ const ResultsDisplay: React.FC = () => {
                   Document Classification
                 </h4>
                 <div className="classification-badge">
-                  {aiResults.classification.top_category}
+                  {classification.top_category}
                 </div>
               </div>
               
-              <p className="result-message">{aiResults.classification.message}</p>
+              <p className="result-message">{classification.message || "Document type classification results."}</p>
               
-              {aiResults.classification.scores && (
+              {classification.scores && (
                 <div className="classification-scores">
                   <div className="classification-scores-list">
-                    {Object.entries(aiResults.classification.scores)
+                    {Object.entries(classification.scores)
                       .sort(([, a], [, b]) => (b as number) - (a as number))
                       .slice(0, 5)
                       .map(([category, score]) => (
@@ -244,26 +284,26 @@ const ResultsDisplay: React.FC = () => {
                 </h4>
               </div>
               
-              <p className="result-message">{aiResults.summary.message}</p>
+              <p className="result-message">{summary.message || "Automated summary of the document content."}</p>
               
               <div className="summary-container">
                 <div className="summary-content">
-                  {aiResults.summary.summary}
+                  {summary.summary}
                 </div>
                 
                 <div className="summary-stats">
                   <div className="summary-stat">
                     <span className="summary-stat-label">Original:</span>
-                    <span className="summary-stat-value">{aiResults.summary.original_length} chars</span>
+                    <span className="summary-stat-value">{summary.original_length} chars</span>
                   </div>
                   <div className="summary-stat">
                     <span className="summary-stat-label">Summary:</span>
-                    <span className="summary-stat-value">{aiResults.summary.summary_length} chars</span>
+                    <span className="summary-stat-value">{summary.summary_length} chars</span>
                   </div>
                   <div className="summary-stat summary-reduction">
                     <span className="summary-stat-label">Reduction:</span>
                     <span className="summary-stat-value">
-                      {Math.round((1 - aiResults.summary.summary_length / aiResults.summary.original_length) * 100)}%
+                      {Math.round((1 - summary.summary_length / summary.original_length) * 100)}%
                     </span>
                   </div>
                 </div>
@@ -271,7 +311,7 @@ const ResultsDisplay: React.FC = () => {
             </div>
           )}
           
-          {/* Named Entity Recognition */}
+          {/* Named Entity Recognition - ENHANCED */}
           {hasEntities && (
             <div className="result-card">
               <div className="result-card-header">
@@ -291,16 +331,39 @@ const ResultsDisplay: React.FC = () => {
                 </h4>
               </div>
               
-              <p className="result-message">{aiResults.entities.message}</p>
+              <p className="result-message">{entities.message || "Identification of key entities in the document."}</p>
               
-              <EntityVisualization text={documentResult.text_content} entities={aiResults.entities} />
+              {/* Enhanced Entity Visualization - NEW COMPONENT */}
+              <EnhancedEntityVisualization entities={entities} />
+              
+              {/* Original Entity Visualization */}
+              <h4 className="visualization-subtitle">Entity Highlighting</h4>
+              <EntityVisualization text={documentResult.text_content} entities={entities} />
             </div>
           )}
         </div>
+      ) : (
+        <div className="no-ai-results">
+          <div className="notification-card">
+            <svg className="notification-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 16h-2v-6h2v6zm0-8h-2v-2h2v2zm-1-6C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" 
+                fill="currentColor" />
+            </svg>
+            <div className="notification-content">
+              <h4 className="notification-title">No AI Analysis Results</h4>
+              <p className="notification-message">
+                Enable the "AI Analysis" checkbox when uploading documents to see:
+              </p>
+              <ul className="feature-list">
+                <li>Sentiment analysis (positive/negative/neutral rating)</li>
+                <li>Entity recognition (names, organizations, dates)</li>
+                <li>Document classification (thesis, report, contract, etc.)</li>
+                <li>Text summarization and keyword extraction</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       )}
-
-      {/* Document Statistics */}
-      <DocumentStatistics text={documentResult.text_content} />
 
       {/* Extracted Text Section */}
       <div className="content-section">
