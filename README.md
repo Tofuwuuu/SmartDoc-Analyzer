@@ -1,157 +1,133 @@
 # SmartDoc Analyzer
 
-A cloud-based document intelligence platform that extracts insights from uploaded documents (PDFs, images) using AI.
+An AI-powered document analysis and processing application that extracts text, analyzes content, and generates insights from PDFs and images.
 
 ## Features
 
-- Document Upload & OCR
-  - Accept PDF/images via drag-and-drop UI
-  - Extract text using OCR and PyMuPDF
-
-- Document Analysis
-  - Extract text from documents
-  - Optical Character Recognition (OCR) for images
-
-- Interactive UI
-  - Modern React frontend with Tailwind CSS
-  - Real-time document processing
-  - Responsive design
-  
-- Smart Database
-  - Document fingerprinting with SHA-256 hashes
-  - Analysis result caching for performance
-  - Processing pipeline state tracking
-  - Performance telemetry
-  - 24-hour automatic data lifecycle management
+- Document upload (PDF and images)
+- Text extraction using OCR for scanned documents
+- Document classification
+- Entity extraction
+- Sentiment analysis
+- Text summarization
+- Statistical analysis
 
 ## Tech Stack
 
-- **Frontend**: React.js + TypeScript + Tailwind CSS
-- **Backend**: Python FastAPI
-- **Document Processing**: PyMuPDF, Tesseract OCR
-- **Database**: SQLite (local) / PostgreSQL (production)
-- **ORM**: SQLAlchemy with Alembic migrations
+### Backend
+- FastAPI
+- PyMuPDF (PDF processing)
+- Pytesseract & PIL (OCR processing)
+- Scikit-learn (for document classification)
+- Python 3.9+
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14+)
-- Python (v3.7+)
-- Tesseract OCR (optional, for full OCR functionality)
-- PostgreSQL (for production deployment)
-
-### Tesseract OCR Installation (Optional)
-
-For full OCR functionality with images and scanned PDFs, install Tesseract:
-
-**Windows:**
-1. Download the installer from [UB-Mannheim's GitHub](https://github.com/UB-Mannheim/tesseract/wiki)
-2. Run the installer and note the installation path
-3. Add Tesseract to your PATH environment variable (typically `C:\Program Files\Tesseract-OCR`)
-
-**macOS:**
-```bash
-brew install tesseract
-```
-
-**Linux:**
-```bash
-sudo apt-get install tesseract-ocr
-```
-
-**Verify Installation:**
-```bash
-tesseract --version
-```
-
-### Setup Backend
-
-```bash
-cd backend
-python -m venv venv
-# On Windows
-venv\Scripts\activate
-# On macOS/Linux
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Initialize the database (first time only)
-alembic upgrade head
-```
-
-### Setup Frontend
-
-```bash
-cd frontend
-npm install
-```
-
-### Database Configuration
-
-By default, the application uses SQLite for local development. For production:
-
-1. Set the `DATABASE_URL` environment variable:
-   ```
-   # For PostgreSQL
-   export DATABASE_URL=postgresql://user:password@localhost/smartdoc
-   ```
-
-2. Run database migrations:
-   ```
-   alembic upgrade head
-   ```
-
-3. For new database changes:
-   ```
-   alembic revision --autogenerate -m "description"
-   alembic upgrade head
-   ```
-
-### Running the Application
-
-**Backend:**
-```bash
-cd backend
-# Activate virtual environment
-python run.py
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm start
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
+### Frontend
+- React 18
+- Axios
+- Chart.js for visualizations
 
 ## Project Structure
 
 ```
 smartdoc-analyzer/
-├── frontend/               # React frontend
+├── backend/
+│   ├── app.py                  # Main FastAPI application
+│   ├── processing.py           # Document processing pipeline
+│   ├── ai_analysis.py          # AI analysis modules
+│   ├── utils.py                # Helper functions
+│   ├── requirements.txt        # Python dependencies
+│   └── Dockerfile
+├── frontend/
 │   ├── public/
-│   └── src/
-│       ├── components/     # React components
-│       ├── context/        # React context for state management
-│       └── ...
-├── backend/                # FastAPI backend
-│   ├── app/
-│   │   ├── api/            # API routes
-│   │   ├── models/         # Data models
-│   │   ├── services/       # Business logic
-│   │   └── db/             # Database models and utilities
-│   ├── migrations/         # Alembic migrations
-│   ├── uploads/            # Uploaded documents
-│   └── ...
-└── ...
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── UploadArea.js
+│   │   │   ├── ResultsPanel.js
+│   │   │   ├── StatsCard.js
+│   │   │   └── AIInsights.js
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── package.json
+│   └── Dockerfile
+├── models/
+│   ├── document_classifier.pkl # Pre-trained classifier
+│   └── ner_model/              # spaCy NER model
+├── docker-compose.yml
+├── .gitignore
+└── README.md
 ```
+
+## Setup & Installation
+
+### Prerequisites
+- Docker and Docker Compose
+- Python 3.9+
+- Node.js 16+
+
+### Running with Docker (Recommended)
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/smartdoc-analyzer.git
+cd smartdoc-analyzer
+```
+
+2. Start the containers:
+```bash
+docker-compose up -d
+```
+
+3. Access the application:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+### Development Setup
+
+#### Backend
+
+1. Create a virtual environment:
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Run the backend server:
+```bash
+uvicorn app:app --reload
+```
+
+#### Frontend
+
+1. Install dependencies:
+```bash
+cd frontend
+npm install
+```
+
+2. Run the development server:
+```bash
+npm start
+```
+
+## API Endpoints
+
+- `GET /` - API health check
+- `POST /upload/` - Upload and process a document
+- `GET /documents/` - List all processed documents
+- `GET /document/{document_id}` - Get specific document details
 
 ## License
 
-This project is licensed under the MIT License.
+MIT
 
 ---
 

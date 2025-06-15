@@ -1,1 +1,0 @@
-# SmartDoc Analyzer services 
