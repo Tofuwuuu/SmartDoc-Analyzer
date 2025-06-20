@@ -10,20 +10,23 @@ const AIInsights = ({ insights }) => {
     );
   }
 
-  const { document_type, entities, sentiment, summary } = insights;
+  const { classification, entities, sentiment, keywords } = insights;
 
   return (
     <div className="ai-insights">
       <div className="insight-section">
         <h4>Document Classification</h4>
         <div className="document-type">
-          <span className="type-label">{document_type}</span>
+          <span className="type-label">{classification?.type || 'Unknown'}</span>
+          {classification?.confidence && (
+            <span className="type-confidence"> ({classification.confidence})</span>
+          )}
         </div>
       </div>
 
       <div className="insight-section">
         <h4>Extracted Entities</h4>
-        {Object.keys(entities).length === 0 ? (
+        {!entities || Object.keys(entities).length === 0 ? (
           <p>No entities detected</p>
         ) : (
           <div className="entities-list">
@@ -45,17 +48,25 @@ const AIInsights = ({ insights }) => {
 
       <div className="insight-section">
         <h4>Sentiment Analysis</h4>
-        <div className={`sentiment-box ${sentiment.label.toLowerCase()}`}>
-          <span className="sentiment-label">{sentiment.label}</span>
-          <span className="sentiment-score">Score: {sentiment.score}</span>
-        </div>
+        {sentiment && (
+          <div className={`sentiment-box ${sentiment.label?.toLowerCase() || 'neutral'}`}>
+            <span className="sentiment-label">{sentiment.label || 'Neutral'}</span>
+            <span className="sentiment-score">Score: {sentiment.score || '0.5'}</span>
+          </div>
+        )}
       </div>
 
       <div className="insight-section">
-        <h4>Document Summary</h4>
-        <div className="summary-text">
-          <p>{summary}</p>
-        </div>
+        <h4>Keywords</h4>
+        {keywords && keywords.length > 0 ? (
+          <div className="keywords-list">
+            {keywords.map((keyword, index) => (
+              <span key={index} className="keyword-item">{keyword}</span>
+            ))}
+          </div>
+        ) : (
+          <p>No keywords detected</p>
+        )}
       </div>
     </div>
   );

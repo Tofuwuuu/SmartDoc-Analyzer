@@ -2,12 +2,13 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000';
 
-export const uploadDocument = async (file) => {
+export const uploadDocument = async (file, enableAi = true) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('enable_ai', enableAi);
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/upload/`, formData, {
+    const response = await axios.post(`${API_BASE_URL}/analyze`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
