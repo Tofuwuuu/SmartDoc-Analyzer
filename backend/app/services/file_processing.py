@@ -29,9 +29,9 @@ def get_extension(filename: str) -> str:
 
 def validate_file(filename: str, size_bytes: int) -> str:
     ext = get_extension(filename)
-    if ext not in settings.ALLOWED_EXTENSIONS:
+    if ext not in settings.allowed_extensions_list:
         raise UnsupportedFileTypeError(
-            f"Unsupported file type '.{ext}'. Allowed types: {', '.join(settings.ALLOWED_EXTENSIONS)}"
+            f"Unsupported file type '.{ext}'. Allowed types: {', '.join(settings.allowed_extensions_list)}"
         )
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
     if size_bytes > max_bytes:
