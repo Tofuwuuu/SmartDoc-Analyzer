@@ -41,11 +41,13 @@ export function UploadDropzone({ onUpload, isUploading }: UploadDropzoneProps) {
       }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
-      className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${
-        isDragging ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-white"
+      className={`group relative flex min-h-44 flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-9 text-center transition ${
+        isDragging
+          ? "border-brand-500 bg-brand-50 shadow-inner"
+          : "border-slate-300 bg-slate-50/70 hover:border-brand-300 hover:bg-white"
       }`}
     >
-      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition group-hover:ring-brand-200">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="h-6 w-6">
           <path
             d="M12 16V4m0 0L7 9m5-5l5 5M5 20h14"
@@ -56,10 +58,10 @@ export function UploadDropzone({ onUpload, isUploading }: UploadDropzoneProps) {
           />
         </svg>
       </div>
-      <p className="text-sm font-medium text-slate-700">
-        Drag & drop a PDF or image here, or{" "}
-        <label className="cursor-pointer text-brand-600 underline underline-offset-2">
-          browse
+      <p className="max-w-md text-sm font-medium text-slate-800">
+        Drop a PDF or image here, or{" "}
+        <label className="cursor-pointer text-brand-700 underline underline-offset-4 hover:text-brand-800">
+          browse files
           <input
             type="file"
             className="hidden"
@@ -69,8 +71,13 @@ export function UploadDropzone({ onUpload, isUploading }: UploadDropzoneProps) {
           />
         </label>
       </p>
-      <p className="mt-1 text-xs text-slate-400">PDF, PNG, JPG, TIFF, BMP, WEBP up to 25MB</p>
-      {isUploading && <p className="mt-4 text-sm font-medium text-brand-600">Uploading & analyzing...</p>}
+      <p className="mt-2 text-xs text-slate-500">PDF, PNG, JPG, TIFF, BMP, WEBP</p>
+      {isUploading && (
+        <div className="mt-5 flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 ring-1 ring-brand-100">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-brand-600" />
+          Uploading and analyzing
+        </div>
+      )}
     </div>
   );
 }

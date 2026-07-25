@@ -3,17 +3,17 @@ import type { RiskFlag, RiskSeverity } from "../types";
 const SEVERITY_STYLES: Record<RiskSeverity, { badge: string; card: string; label: string }> = {
   high: {
     badge: "bg-red-100 text-red-700",
-    card: "border-red-200 bg-red-50/50",
+    card: "border-red-200 bg-red-50/70",
     label: "High risk",
   },
   medium: {
     badge: "bg-amber-100 text-amber-700",
-    card: "border-amber-200 bg-amber-50/50",
+    card: "border-amber-200 bg-amber-50/70",
     label: "Medium risk",
   },
   low: {
     badge: "bg-slate-100 text-slate-700",
-    card: "border-slate-200 bg-slate-50/50",
+    card: "border-slate-200 bg-slate-50/70",
     label: "Low risk",
   },
 };
@@ -30,12 +30,10 @@ export function RiskFlagsPanel({ flags }: { flags: RiskFlag[] }) {
   );
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Compliance risk flags
-        </h3>
-        <div className="flex gap-2 text-xs font-medium">
+    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-sm font-semibold uppercase text-slate-500">Compliance risk flags</h3>
+        <div className="flex flex-wrap gap-2 text-xs font-medium">
           {(["high", "medium", "low"] as RiskSeverity[]).map(
             (sev) =>
               counts[sev] > 0 && (
@@ -48,7 +46,7 @@ export function RiskFlagsPanel({ flags }: { flags: RiskFlag[] }) {
       </div>
 
       {sorted.length === 0 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm leading-6 text-slate-500">
           No compliance risk flags detected. This document was scanned for missing clauses,
           auto-renewal, payment terms, and jurisdiction conflicts.
         </p>
@@ -58,16 +56,18 @@ export function RiskFlagsPanel({ flags }: { flags: RiskFlag[] }) {
             const style = SEVERITY_STYLES[flag.severity] ?? SEVERITY_STYLES.low;
             return (
               <li key={`${flag.type}-${idx}`} className={`rounded-lg border p-3 ${style.card}`}>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm font-semibold text-slate-900">{flag.title}</p>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${style.badge}`}>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${style.badge}`}
+                  >
                     {style.label}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-slate-700">{flag.description}</p>
+                <p className="mt-1 text-sm leading-6 text-slate-700">{flag.description}</p>
                 {flag.evidence && (
-                  <p className="mt-2 rounded bg-white/70 px-2 py-1 text-xs italic text-slate-500">
-                    “{flag.evidence}”
+                  <p className="mt-2 rounded-lg bg-white/80 px-2 py-1 text-xs italic text-slate-500">
+                    "{flag.evidence}"
                   </p>
                 )}
               </li>
