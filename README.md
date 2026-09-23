@@ -28,7 +28,19 @@ Upload a PDF or image. The API extracts text (PyMuPDF or Tesseract), runs local 
 
 ## Screenshots
 
-Put UI captures in [`docs/screenshots/`](docs/screenshots/) only (dashboard, upload, and the document detail risk panel). No images are checked in yet.
+Captures of the local UI. Analysis runs through Docker Compose only; there is no public live demo.
+
+### Dashboard
+
+The home page accepts a PDF or image and lists recent documents.
+
+![Dashboard with the upload dropzone and recent documents](docs/screenshots/dashboard.png)
+
+### Document detail
+
+A completed document shows metadata, extracted text, named entities, and summary statistics.
+
+![Document detail with extracted text, entities, and summary](docs/screenshots/document-detail.png)
 
 ## Architecture
 
