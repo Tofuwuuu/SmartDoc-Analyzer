@@ -1,0 +1,309 @@
+[
+  {
+    "name": "sample_contract",
+    "text": "SERVICE AGREEMENT\n\nThis Service Agreement (\"Agreement\") is entered into as of the Effective Date\nby and between Northwind Labs LLC (\"Provider\") and Harbor and Co. (\"Client\").\nThe parties hereby agree as follows.\n\n1. Services. Provider shall perform the software maintenance described in Exhibit A.\nProvider shall not subcontract the core services without prior written consent.\n\n2. Term. This Agreement begins on the Effective Date and shall automatically renew\nfor successive one-year terms unless either party gives written notice of 14 days\nbefore the end of the then-current term.\n\n3. Fees. Client shall pay the full amount due upfront before work begins.\nAdditional invoices are payable Net 90 from the invoice date.\n\n4. Confidentiality. Each party shall not disclose the other party's confidential\ninformation, except where disclosure is required by law.\n\n5. Termination. Either party may end this Agreement for a material breach that\nremains uncured for fourteen days after written notice.\n\n6. Governing Law. This Agreement is governed by the laws of the State of Delaware.\nThe parties also agree this Agreement is governed by the laws of the State of California.\n\nIN WITNESS WHEREOF, the parties have executed this Agreement.\n\nProvider: Ada Lovelace, Northwind Labs LLC\nClient: Samir Patel, Harbor and Co.",
+    "is_contract": true,
+    "flags": [
+      {
+        "type": "auto_renewal",
+        "severity": "high",
+        "title": "Short auto-renewal opt-out window",
+        "description": "Auto-renewal requires only 14 days' written notice to cancel, below the commonly recommended 30-day minimum.",
+        "evidence": "...new for successive one-year terms unless either party gives written notice of 14 days before the end of the then-current term.  3. Fees. Client s..."
+      },
+      {
+        "type": "jurisdiction_conflict",
+        "severity": "high",
+        "title": "Conflicting governing law / jurisdiction clauses",
+        "description": "Multiple different governing-law jurisdictions were found in this document: California, Delaware. This may indicate conflicting or copy-pasted clauses that need legal review.",
+        "evidence": "...remains uncured for fourteen days after written notice.  6. Governing Law. This Agreement is governed by the laws of the State of Delaware. The parties also agree this Agreement is governed by the l..."
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Limitation of liability clause",
+        "description": "No limitation of liability clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Indemnification clause",
+        "description": "No indemnification clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Dispute resolution / arbitration clause",
+        "description": "No dispute resolution / arbitration clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "title": "Automatic renewal clause detected",
+        "description": "This document automatically renews unless action is taken. Confirm the opt-out notice window and calendar it.",
+        "evidence": "...Term. This Agreement begins on the Effective Date and shall automatically renew for successive one-year terms unless either party gives wri..."
+      },
+      {
+        "type": "payment_terms",
+        "severity": "medium",
+        "title": "Unusually long payment term (Net 90)",
+        "description": "Payment terms of Net 90 exceed the common 60-day threshold, which may strain cash flow.",
+        "evidence": "...upfront before work begins. Additional invoices are payable Net 90 from the invoice date.  4. Confidentiality. Each party shal..."
+      },
+      {
+        "type": "payment_terms",
+        "severity": "medium",
+        "title": "Full payment required in advance",
+        "description": "This document requires full payment upfront, which is less favorable than milestone- or delivery-based payment terms.",
+        "evidence": "...nd of the then-current term.  3. Fees. Client shall pay the full amount due upfront before work begins. Additional invoices are payable Net 90..."
+      }
+    ]
+  },
+  {
+    "name": "sample_scan_source",
+    "text": "SERVICE AGREEMENT\n\nThis Service Agreement is made on the Effective Date.\nThe parties hereby agree as follows.\n\nThis agreement shall automatically renew.\nCancel with written notice of 14 days.\n\nClient shall pay the full amount due upfront.\nInvoices are payable Net 90.\n\nConfidentiality. Each party shall not share confidential data.\nTermination. Either party may end this agreement.\n\nGoverning Law. This agreement is governed by the laws of Delaware.\nThis agreement is governed by the laws of California.\n\nSigned by Ada Lovelace of Northwind Labs.\nSigned by Samir Patel of Harbor Labs.",
+    "is_contract": true,
+    "flags": [
+      {
+        "type": "auto_renewal",
+        "severity": "high",
+        "title": "Short auto-renewal opt-out window",
+        "description": "Auto-renewal requires only 14 days' written notice to cancel, below the commonly recommended 30-day minimum.",
+        "evidence": "...ows.  This agreement shall automatically renew. Cancel with written notice of 14 days.  Client shall pay the full amount due upfront. Invoices ar..."
+      },
+      {
+        "type": "jurisdiction_conflict",
+        "severity": "high",
+        "title": "Conflicting governing law / jurisdiction clauses",
+        "description": "Multiple different governing-law jurisdictions were found in this document: California, Delaware. This may indicate conflicting or copy-pasted clauses that need legal review.",
+        "evidence": "...al data. Termination. Either party may end this agreement.  Governing Law. This agreement is governed by the laws of Delaware. This agreement is governed by the laws of California.  Sig..."
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Limitation of liability clause",
+        "description": "No limitation of liability clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Indemnification clause",
+        "description": "No indemnification clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Dispute resolution / arbitration clause",
+        "description": "No dispute resolution / arbitration clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "title": "Automatic renewal clause detected",
+        "description": "This document automatically renews unless action is taken. Confirm the opt-out notice window and calendar it.",
+        "evidence": "...The parties hereby agree as follows.  This agreement shall automatically renew. Cancel with written notice of 14 days.  Client shall pay t..."
+      },
+      {
+        "type": "payment_terms",
+        "severity": "medium",
+        "title": "Unusually long payment term (Net 90)",
+        "description": "Payment terms of Net 90 exceed the common 60-day threshold, which may strain cash flow.",
+        "evidence": "...shall pay the full amount due upfront. Invoices are payable Net 90.  Confidentiality. Each party shall not share confidential..."
+      },
+      {
+        "type": "payment_terms",
+        "severity": "medium",
+        "title": "Full payment required in advance",
+        "description": "This document requires full payment upfront, which is less favorable than milestone- or delivery-based payment terms.",
+        "evidence": "...ancel with written notice of 14 days.  Client shall pay the full amount due upfront. Invoices are payable Net 90.  Confidentiality. Each party..."
+      }
+    ]
+  },
+  {
+    "name": "not_a_contract",
+    "text": "Shopping list\nMilk\nEggs\nBread from the corner store\n",
+    "is_contract": false,
+    "flags": [
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Termination clause",
+        "description": "No termination clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Limitation of liability clause",
+        "description": "No limitation of liability clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Indemnification clause",
+        "description": "No indemnification clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Confidentiality clause",
+        "description": "No confidentiality clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Governing law clause",
+        "description": "No governing law clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Dispute resolution / arbitration clause",
+        "description": "No dispute resolution / arbitration clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      }
+    ]
+  },
+  {
+    "name": "auto_renew_without_notice",
+    "text": "This Agreement is made as of the Effective Date. The parties hereby agree this agreement shall automatically renew each year.\n",
+    "is_contract": true,
+    "flags": [
+      {
+        "type": "auto_renewal",
+        "severity": "high",
+        "title": "Auto-renewal with no clear opt-out notice period",
+        "description": "An auto-renewal clause was found but no explicit notice period (e.g. 'written notice of 30 days') could be identified.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Termination clause",
+        "description": "No termination clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Limitation of liability clause",
+        "description": "No limitation of liability clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Indemnification clause",
+        "description": "No indemnification clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Confidentiality clause",
+        "description": "No confidentiality clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Governing law clause",
+        "description": "No governing law clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Dispute resolution / arbitration clause",
+        "description": "No dispute resolution / arbitration clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "auto_renewal",
+        "severity": "medium",
+        "title": "Automatic renewal clause detected",
+        "description": "This document automatically renews unless action is taken. Confirm the opt-out notice window and calendar it.",
+        "evidence": "...fective Date. The parties hereby agree this agreement shall automatically renew each year...."
+      }
+    ]
+  },
+  {
+    "name": "clean_contract",
+    "text": "This Service Agreement is entered into as of the Effective Date. The parties hereby agree.\n\nTermination. Either party may end this agreement.\nLimitation of liability. Provider limits its liability to fees paid.\nIndemnification. Client shall indemnify Provider.\nConfidentiality. Each party shall not disclose confidential information.\nGoverning law. This agreement is governed by the laws of Delaware.\nDispute resolution. Disputes go to arbitration.\n\nFees are payable Net 30.",
+    "is_contract": true,
+    "flags": []
+  },
+  {
+    "name": "upfront_and_net_61",
+    "text": "This Agreement is entered into on the Effective Date. The parties hereby agree.\n100% payment due in advance.\nInvoices are Net 61.\n",
+    "is_contract": true,
+    "flags": [
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Termination clause",
+        "description": "No termination clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Limitation of liability clause",
+        "description": "No limitation of liability clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Indemnification clause",
+        "description": "No indemnification clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Confidentiality clause",
+        "description": "No confidentiality clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Governing law clause",
+        "description": "No governing law clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "missing_clause",
+        "severity": "medium",
+        "title": "Missing: Dispute resolution / arbitration clause",
+        "description": "No dispute resolution / arbitration clause was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+        "evidence": null
+      },
+      {
+        "type": "payment_terms",
+        "severity": "medium",
+        "title": "Unusually long payment term (Net 61)",
+        "description": "Payment terms of Net 61 exceed the common 60-day threshold, which may strain cash flow.",
+        "evidence": "...ies hereby agree. 100% payment due in advance. Invoices are Net 61...."
+      },
+      {
+        "type": "payment_terms",
+        "severity": "medium",
+        "title": "Full payment required in advance",
+        "description": "This document requires full payment upfront, which is less favorable than milestone- or delivery-based payment terms.",
+        "evidence": "...tered into on the Effective Date. The parties hereby agree. 100% payment due in advance. Invoices are Net 61...."
+      }
+    ]
+  }
+]

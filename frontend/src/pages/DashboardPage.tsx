@@ -69,7 +69,11 @@ export function DashboardPage() {
           </div>
 
           <div className="mt-5">
-            <UploadDropzone onUpload={handleUpload} isUploading={isUploading} />
+            <UploadDropzone
+              onUpload={handleUpload}
+              isUploading={isUploading}
+              busyLabel={isUploading ? "Uploading and analyzing" : undefined}
+            />
           </div>
 
           {error && (

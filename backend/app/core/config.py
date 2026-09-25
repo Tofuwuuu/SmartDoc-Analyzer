@@ -2,7 +2,10 @@ import json
 from functools import lru_cache
 from typing import List
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+INSECURE_JWT_SECRETS = {"change-me-in-production", "secret", "changeme"}
 
 
 def _parse_csv_or_json_list(raw: str) -> List[str]:
@@ -33,7 +36,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://smartdoc:smartdoc@localhost:5432/smartdoc"
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    JWT_SECRET: str = "change-me-in-production"
+    JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 7
 
@@ -43,8 +46,19 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: str = "pdf,png,jpg,jpeg,tiff,bmp,webp"
     CACHE_TTL_SECONDS: int = 86400
 
-    # Stored as plain string so Railway env vars don't need strict JSON quoting.
+    # Plain string so local env files can use either JSON or comma-separated values.
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def jwt_secret_must_be_set(cls, value: str) -> str:
+        secret = value.strip()
+        if len(secret) < 16 or secret.lower() in INSECURE_JWT_SECRETS:
+            raise ValueError(
+                "Set JWT_SECRET to a unique value of at least 16 characters. "
+                "The previous insecure default is not accepted."
+            )
+        return secret
 
     @property
     def cors_origins_list(self) -> List[str]:

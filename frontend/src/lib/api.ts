@@ -6,8 +6,13 @@ import type {
   InsightResponse,
   TokenResponse,
 } from "../types";
+import { API_URL, usesBackend } from "./mode";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
+function assertBackend(): void {
+  if (!usesBackend) {
+    throw new Error("No API is configured. This build analyzes documents in the browser.");
+  }
+}
 
 export const apiClient = axios.create({ baseURL: API_URL });
 
@@ -28,6 +33,7 @@ export function getApiErrorMessage(error: unknown): string {
 }
 
 export async function uploadDocument(file: File): Promise<DocumentSummary> {
+  assertBackend();
   const formData = new FormData();
   formData.append("file", file);
   const { data } = await apiClient.post<DocumentSummary>("/documents/upload", formData, {
@@ -37,25 +43,30 @@ export async function uploadDocument(file: File): Promise<DocumentSummary> {
 }
 
 export async function listDocuments(): Promise<DocumentListResponse> {
+  assertBackend();
   const { data } = await apiClient.get<DocumentListResponse>("/documents");
   return data;
 }
 
 export async function getDocument(id: string): Promise<DocumentSummary> {
+  assertBackend();
   const { data } = await apiClient.get<DocumentSummary>(`/documents/${id}`);
   return data;
 }
 
 export async function getDocumentInsights(id: string): Promise<InsightResponse> {
+  assertBackend();
   const { data } = await apiClient.get<InsightResponse>(`/documents/${id}/insights`);
   return data;
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
+  assertBackend();
   const { data } = await apiClient.post<TokenResponse>("/auth/login", { email, password });
   return data;
 }
 
 export async function register(email: string, password: string): Promise<void> {
+  assertBackend();
   await apiClient.post("/auth/register", { email, password });
 }

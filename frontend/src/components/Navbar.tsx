@@ -1,10 +1,9 @@
 import { Link, NavLink } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { usesBackend } from "../lib/mode";
 
 export function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
-
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
@@ -16,38 +15,46 @@ export function Navbar() {
             SmartDoc Analyzer
           </span>
         </Link>
-        <nav className="flex items-center gap-1 text-sm font-medium text-slate-600">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `rounded-lg px-3 py-2 transition ${
-                isActive ? "bg-slate-100 text-slate-950" : "hover:bg-slate-50 hover:text-brand-700"
-              }`
-            }
-          >
-            Documents
-          </NavLink>
-          {isAuthenticated ? (
-            <button
-              onClick={logout}
-              className="rounded-lg px-3 py-2 transition hover:bg-slate-50 hover:text-brand-700"
-            >
-              Log out
-            </button>
-          ) : (
-            <NavLink
-              to="/login"
-              className={({ isActive }) =>
-                `rounded-lg px-3 py-2 transition ${
-                  isActive ? "bg-slate-100 text-slate-950" : "hover:bg-slate-50 hover:text-brand-700"
-                }`
-              }
-            >
-              Log in
-            </NavLink>
-          )}
-        </nav>
+        {usesBackend ? <BackendNav /> : null}
       </div>
     </header>
+  );
+}
+
+function BackendNav() {
+  const { isAuthenticated, logout } = useAuth();
+
+  return (
+    <nav className="flex items-center gap-1 text-sm font-medium text-slate-600">
+      <NavLink
+        to="/"
+        className={({ isActive }) =>
+          `rounded-lg px-3 py-2 transition ${
+            isActive ? "bg-slate-100 text-slate-950" : "hover:bg-slate-50 hover:text-brand-700"
+          }`
+        }
+      >
+        Documents
+      </NavLink>
+      {isAuthenticated ? (
+        <button
+          onClick={logout}
+          className="rounded-lg px-3 py-2 transition hover:bg-slate-50 hover:text-brand-700"
+        >
+          Log out
+        </button>
+      ) : (
+        <NavLink
+          to="/login"
+          className={({ isActive }) =>
+            `rounded-lg px-3 py-2 transition ${
+              isActive ? "bg-slate-100 text-slate-950" : "hover:bg-slate-50 hover:text-brand-700"
+            }`
+          }
+        >
+          Log in
+        </NavLink>
+      )}
+    </nav>
   );
 }
