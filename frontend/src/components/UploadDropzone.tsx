@@ -7,7 +7,7 @@ interface UploadDropzoneProps {
   busyLabel?: string;
 }
 
-const ACCEPTED_EXTENSIONS = [".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".webp"];
+const ACCEPTED_EXTENSIONS = [".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".webp"];
 
 export function UploadDropzone({
   onUpload,
