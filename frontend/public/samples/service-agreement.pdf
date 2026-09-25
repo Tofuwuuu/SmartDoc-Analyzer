@@ -1,0 +1,67 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+5 0 obj
+<< /Length 992 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 54 740 Tm (SERVICE AGREEMENT) Tj
+1 0 0 1 54 708 Tm (This Service Agreement \("Agreement"\) is entered into as of the Effective Date) Tj
+1 0 0 1 54 692 Tm (by and between Northwind Labs LLC \("Provider"\) and Harbor and Co. \("Client"\).) Tj
+1 0 0 1 54 676 Tm (The parties hereby agree as follows.) Tj
+1 0 0 1 54 644 Tm (1. Services. Provider shall perform the software maintenance described in Exhibit A.) Tj
+1 0 0 1 54 628 Tm (Provider shall not subcontract the core services without prior written consent.) Tj
+1 0 0 1 54 596 Tm (2. Term. This Agreement begins on the Effective Date and shall automatically renew) Tj
+1 0 0 1 54 580 Tm (for successive one-year terms unless either party gives written notice of 14 days) Tj
+1 0 0 1 54 564 Tm (before the end of the then-current term.) Tj
+1 0 0 1 54 532 Tm (3. Fees. Client shall pay the full amount due upfront before work begins.) Tj
+1 0 0 1 54 516 Tm (Additional invoices are payable Net 90 from the invoice date.) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 7 0 R /Resources << /Font << /F1 3 0 R >> >> >>
+endobj
+7 0 obj
+<< /Length 809 >>
+stream
+BT
+/F1 11 Tf
+1 0 0 1 54 740 Tm (4. Confidentiality. Each party shall not disclose the other party's confidential) Tj
+1 0 0 1 54 724 Tm (information, except where disclosure is required by law.) Tj
+1 0 0 1 54 692 Tm (5. Termination. Either party may end this Agreement for a material breach that) Tj
+1 0 0 1 54 676 Tm (remains uncured for fourteen days after written notice.) Tj
+1 0 0 1 54 644 Tm (6. Governing Law. This Agreement is governed by the laws of the State of Delaware.) Tj
+1 0 0 1 54 628 Tm (The parties also agree this Agreement is governed by the laws of the State of California.) Tj
+1 0 0 1 54 596 Tm (IN WITNESS WHEREOF, the parties have executed this Agreement.) Tj
+1 0 0 1 54 564 Tm (Provider: Ada Lovelace, Northwind Labs LLC) Tj
+1 0 0 1 54 548 Tm (Client: Samir Patel, Harbor and Co.) Tj
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000191 00000 n 
+0000000317 00000 n 
+0000001360 00000 n 
+0000001486 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+2346
+%%EOF

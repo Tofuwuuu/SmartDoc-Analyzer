@@ -20,3 +20,7 @@ body {
   background: #dbe6fe;
   color: #172554;
 }
+
+details.extract-text > summary::-webkit-details-marker {
+  display: none;
+}

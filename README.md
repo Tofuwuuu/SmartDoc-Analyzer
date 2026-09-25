@@ -1,245 +1,170 @@
 # SmartDoc Analyzer
 
-Junior software-engineer portfolio project: **PDF/image → OCR/NLP insights + contract risk flags**.
+Upload a PDF or scan and get the extracted text, OCR for images, named entities and keywords, and rule-based contract risk flags.
 
-Upload a PDF or image. The API extracts text (PyMuPDF or Tesseract), runs local spaCy for entities and document stats, and, when the text looks like a contract, adds rule-based risk flags. PostgreSQL stores the document and insight; Redis caches by SHA-256 so an identical file skips repeat work.
+The public demo runs entirely in the browser on Vercel. The file is not uploaded. The FastAPI backend is for local use only and is not deployed.
 
-**No external LLM.** Summaries and entities come from spaCy (`en_core_web_sm`) on the API host. After that model is installed, analysis runs offline.
+## Live demo (Vercel)
 
-## Status
+The static Vite app does the work:
 
-**Demo:** local and Docker Compose only. There is no public live demo.
+- PDF text with pdf.js. A page with almost no text layer is rendered and read with OCR.
+- Image OCR with tesseract.js (the OCR engine and English language data are loaded in the browser).
+- Named entities and keywords with compromise.
+- Contract risk flags with a TypeScript port of `backend/app/services/compliance.py`.
 
-**NLP:** spaCy `en_core_web_sm`, fully offline. No calls to an external language model.
+There is no account, database, or API in this build. "Try a sample document" loads a short bundled contract. Uploads are limited to 5 MB and 10 pages.
 
-## Features
+### Deploy
 
-- Upload PDFs and images (`pdf`, `png`, `jpg`, `jpeg`, `tiff`, `bmp`, `webp`) and extract text.
-- Named entities, keyword frequency, and a short statistical summary.
-- Contract risk flags when the text looks like a contract (missing clauses, auto-renewal, payment terms, jurisdiction conflicts).
-- Redis cache keyed by file hash so duplicate uploads reuse a prior result.
-- Optional JWT. Anonymous uploads work; authenticated uploads are scoped to that user.
+Import this repository in Vercel. Do not set a custom root unless you intend to use `frontend/` as the project root.
 
-### Limitations
+- Repository root: `vercel.json` installs and builds `frontend/`, and publishes `frontend/dist`.
+- Project root `frontend/`: `frontend/vercel.json` builds the Vite app the same way.
 
-- Upload processing is synchronous. The request stays open until OCR and NLP finish.
-- The default model is spaCy `en_core_web_sm` (small English). The summary is word and sentence counts plus top entities, not generated prose.
-- Contract flags are keyword and regex rules. They are a review aid, not legal advice.
+No Vercel environment variables are required. Do not set `VITE_API_URL`. If that variable is present at build time, the frontend calls the FastAPI backend instead of analyzing in the browser, and the live demo would depend on a server that is not deployed.
 
-## Screenshots
+`backend/railway.json` has been removed. This project is not deployed to Railway, Render, Fly, or any container host.
 
-Captures of the local UI. Analysis runs through Docker Compose only; there is no public live demo.
+## What the browser build does differently from the local API
 
-### Dashboard
+The contract rules match the Python service. `frontend/src/analysis/compliance.test.ts` compares the TypeScript port to output from `backend/app/services/compliance.py`.
 
-The home page accepts a PDF or image and lists recent documents.
+These parts are not the same engine, so their output can differ:
 
-![Dashboard with the upload dropzone and recent documents](docs/screenshots/dashboard.png)
+- Entities and keywords come from compromise, not spaCy `en_core_web_sm`. Labels are `PERSON`, `ORG`, and `PLACE`. The keyword list is noun terms, not spaCy lemmas.
+- Sentence counts use compromise's sentence splitter.
+- The overview sentence uses the same shape as the Python summary (word count, sentence count, top entities), but the entity names inside it follow compromise.
+- PDF text comes from pdf.js, not PyMuPDF, so spacing can differ.
+- OCR comes from tesseract.js, not the Tesseract binary used by the API, so a scan can read slightly differently.
 
-### Document detail
-
-A completed document shows metadata, extracted text, named entities, and summary statistics.
-
-![Document detail with extracted text, entities, and summary](docs/screenshots/document-detail.png)
-
-## Architecture
-
-```mermaid
-flowchart LR
-  UI[React Frontend] -->|"POST /upload, GET /:id, /insights"| API[FastAPI]
-  API --> Cache{Redis cache}
-  Cache -->|hit by file hash| API
-  API --> FP[file_processing]
-  FP -->|PDF| PyMuPDF
-  FP -->|image| pytesseract
-  API --> ML[ml_inference spaCy]
-  API --> DB[(PostgreSQL)]
-```
-
-**Flow:** upload → SHA-256 hash → Redis (skip reprocessing on a duplicate) → extract text → spaCy NER and insight generation → persist `Document` and `Insight` in Postgres → cache the result → return the document. The frontend polls while status is `processing` and renders entities and insights once `completed`.
-
-### Compliance risk scanning
-
-If the extracted text looks like a contract (`app/services/compliance.py::is_likely_contract`), the pipeline runs a rule-based risk scan and stores it on the `Insight` (`document_type: "contract"`, `risk_flags: [...]`). The goal is "what should I worry about?", not only word and entity counts:
-
-- **Missing standard clauses** — termination, limitation of liability, indemnification, confidentiality, dispute resolution.
-- **Auto-renewal risk** — flags auto-renewal language and checks whether the opt-out notice window is short (< 30 days) or unspecified.
-- **Unusual payment terms** — flags `Net 60+` terms and 100%-upfront payment requirements.
-- **Jurisdiction conflicts** — flags contracts that cite more than one governing-law jurisdiction.
-
-Each flag has a `severity` (`high` / `medium` / `low`), a `title` and `description`, and optional `evidence` (a text snippet). The document detail page shows these in a risk panel, only for documents classified as contracts.
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + TypeScript + Vite + TailwindCSS + React Router |
-| Backend | FastAPI + Pydantic v2 |
-| Database | PostgreSQL (SQLAlchemy 2.0 + Alembic migrations) |
-| Cache | Redis (keyed by file SHA-256 hash) |
-| ML / NLP | spaCy (`en_core_web_sm`) for NER, keyword frequency, and statistical insight generation. No external LLM. |
-| File processing | PyMuPDF (PDF text), pytesseract + Pillow (OCR for images) |
-| Auth | Optional JWT (anonymous uploads work; authenticated uploads are scoped to the user) |
-| Infra | Docker Compose (api, frontend, db, redis). Frontend can deploy to Vercel and the API to Railway; nothing is live right now. |
-
-## Project structure
-
-```
-backend/
-  app/
-    core/        # config, database, security (JWT/password hashing)
-    models/      # SQLAlchemy models: User, Document, Insight
-    schemas/     # Pydantic request/response schemas
-    routers/     # documents, auth, health (mounted under /api/v1)
-    services/    # file_processing, ml_inference, compliance, cache
-    deps.py      # optional/required auth dependencies
-    main.py      # app factory, CORS, global error handlers
-  alembic/       # DB migrations
-  Dockerfile
-  requirements.txt
-frontend/
-  src/
-    components/  # Navbar, UploadDropzone, DocumentList, InsightsPanel, RiskFlagsPanel
-    pages/       # DashboardPage, DocumentDetailPage, LoginPage
-    context/     # AuthContext (JWT storage)
-    lib/api.ts   # typed API client
-  Dockerfile
-  vercel.json
-docker-compose.yml
-.env.example
-docs/screenshots/
-```
-
-## Prerequisites
-
-- Docker and Docker Compose (recommended), **or**
-- Python 3.11+, Node.js 20+, PostgreSQL 16, Redis 7, and `tesseract-ocr` installed locally.
-
-## Quick start (Docker Compose)
-
-```bash
-# 1. Copy environment files
-cp .env.example .env
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
-# 2. Build and start everything
-docker compose up --build
-
-# 3. Open the app
-# Frontend:  http://localhost:5173
-# API docs:  http://localhost:8000/docs
-# Health:    http://localhost:8000/api/v1/health
-```
-
-The `api` service runs `alembic upgrade head` on startup, so the schema is migrated before Uvicorn starts. Services define healthchecks, and `frontend` / `api` wait until their dependencies are healthy.
-
-## Running without Docker
-
-### Backend
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python -m spacy download en_core_web_sm
-
-# PostgreSQL and Redis must already be running, then:
-cp .env.example .env           # edit DATABASE_URL / REDIS_URL if needed
-alembic upgrade head
-uvicorn app.main:app --reload --port 8000
-```
-
-pytesseract needs the `tesseract-ocr` binary on `PATH` (`apt-get install tesseract-ocr` on Debian/Ubuntu, or the Tesseract Windows installer).
-
-### Frontend
+## Run the browser demo locally
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env           # set VITE_API_URL if not http://localhost:8000/api/v1
+npm test
 npm run dev
 ```
 
+Open http://localhost:5173. Leave `VITE_API_URL` unset.
+
+To check the production build the way Vercel will:
+
+```bash
+cd frontend
+npm run build
+npm run preview
+```
+
+`npm run preview` serves `dist` with no API. Try the sample contract, then upload `frontend/public/samples/sample-scan.png`.
+
+## Run the FastAPI backend locally
+
+The API still extracts text with PyMuPDF and Tesseract, runs spaCy, stores documents in Postgres, and caches by file hash in Redis. Upload, list, and every per-document route require a signed-in user, and a document is returned only to its owner. `JWT_SECRET` has no default and rejects `change-me-in-production`.
+
+Docker Compose builds the frontend with `VITE_API_URL`, so that image talks to the local API. It is not the Vercel demo.
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+docker compose up --build
+```
+
+- Frontend (API mode): http://localhost:5173
+- API docs: http://localhost:8000/docs
+- Health: http://localhost:8000/api/v1/health
+
+The API container runs `alembic upgrade head` before Uvicorn. Sign up in the UI, then upload. Anonymous upload and the shared document list are no longer available.
+
+### API without Docker
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+cp .env.example .env
+alembic upgrade head
+uvicorn app.main:app --reload --port 8000
+```
+
+Postgres, Redis, and the `tesseract-ocr` binary must already be running. Set `JWT_SECRET` in `backend/.env` before starting. Point a frontend at it with `frontend/.env`:
+
+```bash
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+Then `npm run dev` in `frontend/`.
+
 ## Environment variables
 
-### Backend (`backend/.env`)
+### Vercel
+
+None.
+
+### Frontend (`frontend/.env`, local API mode only)
+
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | FastAPI base URL, including `/api/v1`. Unset means in-browser analysis. |
+
+### Backend (`backend/.env`, local API only)
 
 | Variable | Description | Default |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://smartdoc:smartdoc@db:5432/smartdoc` |
-| `REDIS_URL` | Redis connection string | `redis://redis:6379/0` |
-| `JWT_SECRET` | Secret used to sign JWTs (set a strong value in production) | `change-me-in-production` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://smartdoc:smartdoc@localhost:5432/smartdoc` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
+| `JWT_SECRET` | Required signing secret, at least 16 characters | none |
 | `JWT_ALGORITHM` | JWT signing algorithm | `HS256` |
 | `JWT_EXPIRE_MINUTES` | Access token lifetime in minutes | `10080` (7 days) |
-| `SPACY_MODEL` | spaCy model name to load | `en_core_web_sm` |
-| `UPLOAD_DIR` | Directory where uploaded files are stored | `uploads` |
-| `MAX_UPLOAD_SIZE_MB` | Max accepted upload size | `25` |
-| `CACHE_TTL_SECONDS` | Redis cache TTL for processed results | `86400` |
-| `CORS_ORIGINS` | Allowed origins (JSON array or comma-separated) | `["http://localhost:5173","http://localhost:3000"]` |
+| `SPACY_MODEL` | spaCy model name | `en_core_web_sm` |
+| `UPLOAD_DIR` | Local upload directory | `uploads` |
+| `MAX_UPLOAD_SIZE_MB` | Max upload size for the local API | `25` |
+| `CACHE_TTL_SECONDS` | Redis cache TTL | `86400` |
+| `CORS_ORIGINS` | Allowed origins (JSON array or comma-separated) | `http://localhost:5173,http://localhost:3000` |
 | `DEBUG` | Include exception details in 500 responses | `false` |
 
-### Frontend (`frontend/.env`)
-
-| Variable | Description | Default |
-|---|---|---|
-| `VITE_API_URL` | Base URL of the backend API | `http://localhost:8000/api/v1` |
-
-### Root (`.env`, used by `docker-compose.yml`)
+### Root (`.env`, Docker Compose)
 
 | Variable | Description |
 |---|---|
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials for the `db` service |
-| `VITE_API_URL` | Passed as a build arg to the `frontend` image |
+| `VITE_API_URL` | Build arg for the Docker frontend image only |
 
-## API reference
+## Local API
 
-All endpoints are prefixed with `/api/v1`. Errors return `{"detail": "message"}` with an HTTP status (`400`, `401`, `404`, `409`, `413`, `422`, `500`).
+All routes are under `/api/v1`. Errors return `{"detail": "message"}`.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| `POST` | `/documents/upload` | Optional | Upload a PDF or image (`multipart/form-data`, field `file`). Processing is synchronous; the response already has the final `status`. |
-| `GET` | `/documents` | Optional | List documents (current user if authenticated, otherwise anonymous documents). |
-| `GET` | `/documents/{id}` | None | Document metadata and extracted text. |
-| `GET` | `/documents/{id}/insights` | None | Entities, summary, and statistics for a completed document. `409` if still processing, `422` if processing failed. |
+| `POST` | `/documents/upload` | Required | Upload a PDF or image. Processing is synchronous. |
+| `GET` | `/documents` | Required | List documents owned by the current user. |
+| `GET` | `/documents/{id}` | Required | Metadata and extracted text. 404 if it is not owned by the caller. |
+| `GET` | `/documents/{id}/insights` | Required | Entities, overview, and risk flags. 404 if it is not owned by the caller. |
 | `POST` | `/auth/register` | None | Create a user (`email`, `password`). |
-| `POST` | `/auth/login` | None | Exchange credentials for a JWT (`access_token`). |
-| `GET` | `/health` | None | API, database, and Redis status. Used by Docker and Railway health checks. |
+| `POST` | `/auth/login` | None | Exchange credentials for a JWT. |
+| `GET` | `/health` | None | API, database, and Redis status. |
 
-Interactive docs: `/docs` (Swagger UI) and `/redoc` while the API is running.
+Contract flags (missing clauses, auto-renewal, long or upfront payment terms, conflicting governing law) are keyword and regex rules. They are a review aid, not legal advice. The overview is word and sentence counts plus top entities, not generated prose.
 
-## Deployment
+## Project structure
 
-These steps are for a future deploy. They are not a live demo.
+```
+frontend/          Vite app. This is what Vercel builds.
+  public/samples/  Bundled contract PDF and a sample scan
+  src/analysis/    pdf.js, tesseract.js, compromise, contract rules, tests
+backend/           FastAPI app for localhost / Docker only
+vercel.json        Static build for a Vercel project at the repo root
+docker-compose.yml Local API stack
+```
 
-### Frontend → Vercel
+Regenerate the sample PDF, sample scan, and compliance fixture (from the repo root, with Pillow installed):
 
-1. Import the repository and set the project root to `frontend/`.
-2. Framework preset: Vite. Build command: `npm run build`. Output directory: `dist` (`frontend/vercel.json` also rewrites client-side routes to `index.html`).
-3. Set `VITE_API_URL` to your deployed API base, including the `/api/v1` prefix.
-4. Deploy.
-
-### Backend → Railway
-
-1. Create a Railway project from this repo, rooted at `backend/`. `backend/railway.json` sets the Dockerfile build and the `/api/v1/health` health check.
-2. Add Railway PostgreSQL and Redis.
-3. Set service variables:
-   - `DATABASE_URL` — Postgres connection string from the plugin
-   - `REDIS_URL` — Redis connection string
-   - `JWT_SECRET` — a strong random secret
-   - `SPACY_MODEL` — `en_core_web_sm`
-   - `CORS_ORIGINS` — JSON array that includes your frontend origin
-4. Deploy. The container runs `alembic upgrade head` before Uvicorn.
-
-### Docker on a VPS
-
-`docker compose up --build -d` works on a VPS with Docker. Fill in `.env` and `backend/.env`, and put a TLS reverse proxy (Caddy or Nginx) in front of `frontend` (port 80 in the container, published as 5173) and `api` (port 8000).
-
-## Notes
-
-- Duplicate uploads (same file bytes) skip re-extraction and re-inference by reusing the Redis result, keyed by SHA-256.
-- Max upload size and allowed extensions are enforced in `app/services/file_processing.py`.
+```bash
+python3 frontend/scripts/generate_samples.py
+```
 
 ## License
 

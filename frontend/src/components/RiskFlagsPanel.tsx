@@ -22,7 +22,7 @@ function severityRank(severity: RiskSeverity): number {
   return severity === "high" ? 0 : severity === "medium" ? 1 : 2;
 }
 
-export function RiskFlagsPanel({ flags }: { flags: RiskFlag[] }) {
+export function RiskFlagsPanel({ flags, scanned = true }: { flags: RiskFlag[]; scanned?: boolean }) {
   const sorted = [...flags].sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
   const counts = flags.reduce(
     (acc, flag) => ({ ...acc, [flag.severity]: (acc[flag.severity] ?? 0) + 1 }),
@@ -47,8 +47,9 @@ export function RiskFlagsPanel({ flags }: { flags: RiskFlag[] }) {
 
       {sorted.length === 0 ? (
         <p className="text-sm leading-6 text-slate-500">
-          No compliance risk flags detected. This document was scanned for missing clauses,
-          auto-renewal, payment terms, and jurisdiction conflicts.
+          {scanned
+            ? "No compliance risk flags detected. This document was checked for missing clauses, auto-renewal, payment terms, and jurisdiction conflicts."
+            : "This text does not look like a contract, so the contract rules were not applied."}
         </p>
       ) : (
         <ul className="space-y-3">

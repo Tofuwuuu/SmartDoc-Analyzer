@@ -1,13 +1,20 @@
 import { useCallback, useState, type ChangeEvent, type DragEvent } from "react";
 
 interface UploadDropzoneProps {
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (file: File) => Promise<void> | void;
   isUploading: boolean;
+  hint?: string;
+  busyLabel?: string;
 }
 
 const ACCEPTED_EXTENSIONS = [".pdf", ".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".webp"];
 
-export function UploadDropzone({ onUpload, isUploading }: UploadDropzoneProps) {
+export function UploadDropzone({
+  onUpload,
+  isUploading,
+  hint = "PDF, PNG, JPG, TIFF, BMP, WEBP",
+  busyLabel,
+}: UploadDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDrop = useCallback(
@@ -65,19 +72,15 @@ export function UploadDropzone({ onUpload, isUploading }: UploadDropzoneProps) {
           <input
             type="file"
             className="hidden"
+            id="document-upload"
             accept={ACCEPTED_EXTENSIONS.join(",")}
             onChange={handleFileInput}
             disabled={isUploading}
           />
         </label>
       </p>
-      <p className="mt-2 text-xs text-slate-500">PDF, PNG, JPG, TIFF, BMP, WEBP</p>
-      {isUploading && (
-        <div className="mt-5 flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 ring-1 ring-brand-100">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-brand-600" />
-          Uploading and analyzing
-        </div>
-      )}
+      <p className="mt-2 text-xs text-slate-500">{hint}</p>
+      {busyLabel && <p className="mt-4 text-sm font-medium text-brand-700">{busyLabel}</p>}
     </div>
   );
 }
