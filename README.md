@@ -2,18 +2,11 @@
 
 Upload a PDF or scan and get the extracted text, OCR for images, named entities and keywords, and rule-based contract risk flags.
 
-The public demo runs entirely in the browser on Vercel. The file is not uploaded. The FastAPI backend is for local use only and is not deployed.
+## Live demo
 
-## Live demo (Vercel)
+The live demo runs entirely in your browser. It extracts text, reads scans, finds names and keywords, and checks contract rules without uploading anything. The Python backend in this repo does the same job with spaCy, which finds more kinds of entities. To run it locally, see Running the backend.
 
-The static Vite app does the work:
-
-- PDF text with pdf.js. A page with almost no text layer is rendered and read with OCR.
-- Image OCR with tesseract.js (the OCR engine and English language data are loaded in the browser).
-- Named entities and keywords with compromise.
-- Contract risk flags with a TypeScript port of `backend/app/services/compliance.py`.
-
-There is no account, database, or API in this build. "Try a sample document" loads a short bundled contract. Uploads are limited to 5 MB and 10 pages.
+There is no account, database, or API in this build. "Try a sample document" loads a short bundled contract. Uploads are limited to 5 MB and 10 pages. PDF text uses pdf.js, and a page with almost no text layer is rendered and read with tesseract.js. Names and keywords use compromise. Contract rules come from `shared/contract-rules.json`, which the TypeScript checker and `backend/app/services/compliance.py` both read.
 
 ### Deploy
 
@@ -28,7 +21,7 @@ No Vercel environment variables are required. Do not set `VITE_API_URL`. If that
 
 ## What the browser build does differently from the local API
 
-The contract rules match the Python service. `frontend/src/analysis/compliance.test.ts` compares the TypeScript port to output from `backend/app/services/compliance.py`.
+Contract rule text comes from `shared/contract-rules.json`. `frontend/src/analysis/compliance.test.ts` checks the TypeScript checker against that file and against sample output from `compliance.py`.
 
 These parts are not the same engine, so their output can differ:
 
@@ -59,7 +52,7 @@ npm run preview
 
 `npm run preview` serves `dist` with no API. Try the sample contract, then upload `frontend/public/samples/sample-scan.png`.
 
-## Run the FastAPI backend locally
+## Running the backend
 
 The API still extracts text with PyMuPDF and Tesseract, runs spaCy, stores documents in Postgres, and caches by file hash in Redis. Upload, list, and every per-document route require a signed-in user, and a document is returned only to its owner. `JWT_SECRET` has no default and rejects `change-me-in-production`.
 
@@ -154,7 +147,8 @@ Contract flags (missing clauses, auto-renewal, long or upfront payment terms, co
 ```
 frontend/          Vite app. This is what Vercel builds.
   public/samples/  Bundled contract PDF and a sample scan
-  src/analysis/    pdf.js, tesseract.js, compromise, contract rules, tests
+  src/analysis/    pdf.js, tesseract.js, compromise, and the rule checker
+shared/            contract-rules.json, read by the browser and the Python API
 backend/           FastAPI app for localhost / Docker only
 vercel.json        Static build for a Vercel project at the repo root
 docker-compose.yml Local API stack

@@ -30,7 +30,7 @@ export function ResultsPage() {
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
             <h1 className="text-xl font-semibold text-slate-950">No results yet</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Try the sample contract or upload a PDF or image. Analysis stays in this browser.
+              Try the sample contract or upload a PDF or image.
             </p>
           </div>
         )}

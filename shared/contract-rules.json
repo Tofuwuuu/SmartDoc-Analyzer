@@ -1,0 +1,96 @@
+{
+  "severityOrder": ["high", "medium", "low"],
+  "snippetRadius": 60,
+  "checkOrder": ["missingClauses", "autoRenewal", "paymentTerms", "jurisdiction"],
+  "contractSignals": {
+    "pattern": "\\b(agreement|hereinafter|hereby|witnesseth|the parties|effective date|shall not|governing law|in witness whereof)\\b",
+    "threshold": 3
+  },
+  "missingClauses": {
+    "type": "missing_clause",
+    "severity": "medium",
+    "title": "Missing: {label}",
+    "description": "No {label_lower} was detected in this document. Consider verifying whether this protection is covered elsewhere or should be added.",
+    "clauses": [
+      {
+        "key": "termination",
+        "label": "Termination clause",
+        "pattern": "\\btermination\\b"
+      },
+      {
+        "key": "limitation_of_liability",
+        "label": "Limitation of liability clause",
+        "pattern": "\\blimitation of liability\\b|\\blimit(?:s|ed)?\\s+(?:its|their|liability)\\b"
+      },
+      {
+        "key": "indemnification",
+        "label": "Indemnification clause",
+        "pattern": "\\bindemnif(?:y|ies|ication)\\b"
+      },
+      {
+        "key": "confidentiality",
+        "label": "Confidentiality clause",
+        "pattern": "\\bconfidential(?:ity)?\\b"
+      },
+      {
+        "key": "governing_law",
+        "label": "Governing law clause",
+        "pattern": "\\bgoverning law\\b|\\bgoverned by the laws of\\b"
+      },
+      {
+        "key": "dispute_resolution",
+        "label": "Dispute resolution / arbitration clause",
+        "pattern": "\\barbitration\\b|\\bdispute resolution\\b"
+      }
+    ]
+  },
+  "autoRenewal": {
+    "pattern": "(automatically renew(?:s|ed|al)?|auto-renew(?:s|al)?|evergreen clause)",
+    "detected": {
+      "type": "auto_renewal",
+      "severity": "medium",
+      "title": "Automatic renewal clause detected",
+      "description": "This document automatically renews unless action is taken. Confirm the opt-out notice window and calendar it."
+    },
+    "notice": {
+      "pattern": "written notice of (?:at least\\s+)?(\\d+)\\s*days?",
+      "minDays": 30,
+      "short": {
+        "type": "auto_renewal",
+        "severity": "high",
+        "title": "Short auto-renewal opt-out window",
+        "description": "Auto-renewal requires only {days} days' written notice to cancel, below the commonly recommended {min_days}-day minimum."
+      },
+      "missing": {
+        "type": "auto_renewal",
+        "severity": "high",
+        "title": "Auto-renewal with no clear opt-out notice period",
+        "description": "An auto-renewal clause was found but no explicit notice period (e.g. 'written notice of 30 days') could be identified."
+      }
+    }
+  },
+  "paymentTerms": {
+    "net": {
+      "pattern": "\\bnet[\\s-]?(\\d{2,3})\\b",
+      "maxDays": 60,
+      "type": "payment_terms",
+      "severity": "medium",
+      "title": "Unusually long payment term (Net {days})",
+      "description": "Payment terms of Net {days} exceed the common {max_days}-day threshold, which may strain cash flow."
+    },
+    "upfront": {
+      "pattern": "\\b(100%|full(?:\\s+amount)?|entire amount) (?:payment )?(?:due |payable )?(?:in advance|upfront|up front)\\b",
+      "type": "payment_terms",
+      "severity": "medium",
+      "title": "Full payment required in advance",
+      "description": "This document requires full payment upfront, which is less favorable than milestone- or delivery-based payment terms."
+    }
+  },
+  "jurisdiction": {
+    "pattern": "(?:governed by|governing law)[\\s\\S]{0,100}?(?:laws of|state of|province of|country of)\\s+(?!the\\b|a\\b|an\\b)([A-Za-z][A-Za-z\\s]{1,40}?)(?=[\\.,;\\n]|$)",
+    "type": "jurisdiction_conflict",
+    "severity": "high",
+    "title": "Conflicting governing law / jurisdiction clauses",
+    "description": "Multiple different governing-law jurisdictions were found in this document: {names}. This may indicate conflicting or copy-pasted clauses that need legal review."
+  }
+}

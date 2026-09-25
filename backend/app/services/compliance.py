@@ -1,224 +1,159 @@
 """Rule-based contract risk scanner.
 
-Answers "what should I worry about?" rather than generic NER stats: detects
-missing standard clauses, risky auto-renewal terms, unusual payment terms,
-and conflicting governing-law/jurisdiction clauses.
+Patterns, labels, severities, and message text live in shared/contract-rules.json.
+The TypeScript analyzer reads that same file.
 """
 
+import json
 import re
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
-CONTRACT_SIGNAL_PATTERN = re.compile(
-    r"\b(agreement|hereinafter|hereby|witnesseth|the parties|effective date|"
-    r"shall not|governing law|in witness whereof)\b",
-    re.IGNORECASE,
-)
-CONTRACT_SIGNAL_THRESHOLD = 3
 
-STANDARD_CLAUSES: list[dict[str, str]] = [
-    {
-        "key": "termination",
-        "label": "Termination clause",
-        "pattern": r"\btermination\b",
-    },
-    {
-        "key": "limitation_of_liability",
-        "label": "Limitation of liability clause",
-        "pattern": r"\blimitation of liability\b|\blimit(?:s|ed)?\s+(?:its|their|liability)\b",
-    },
-    {
-        "key": "indemnification",
-        "label": "Indemnification clause",
-        "pattern": r"\bindemnif(?:y|ies|ication)\b",
-    },
-    {
-        "key": "confidentiality",
-        "label": "Confidentiality clause",
-        "pattern": r"\bconfidential(?:ity)?\b",
-    },
-    {
-        "key": "governing_law",
-        "label": "Governing law clause",
-        "pattern": r"\bgoverning law\b|\bgoverned by the laws of\b",
-    },
-    {
-        "key": "dispute_resolution",
-        "label": "Dispute resolution / arbitration clause",
-        "pattern": r"\barbitration\b|\bdispute resolution\b",
-    },
-]
-
-AUTO_RENEWAL_PATTERN = re.compile(
-    r"(automatically renew(?:s|ed|al)?|auto-renew(?:s|al)?|evergreen clause)",
-    re.IGNORECASE,
-)
-NOTICE_PERIOD_PATTERN = re.compile(
-    r"written notice of (?:at least\s+)?(\d+)\s*days?", re.IGNORECASE
-)
-NOTICE_PERIOD_MIN_DAYS = 30
-
-NET_TERMS_PATTERN = re.compile(r"\bnet[\s-]?(\d{2,3})\b", re.IGNORECASE)
-NET_TERMS_MAX_DAYS = 60
-UPFRONT_PAYMENT_PATTERN = re.compile(
-    r"\b(100%|full(?:\s+amount)?|entire amount) (?:payment )?(?:due |payable )?(?:in advance|upfront|up front)\b",
-    re.IGNORECASE,
-)
-
-GOVERNING_LAW_JURISDICTION_PATTERN = re.compile(
-    r"(?:governed by|governing law)[\s\S]{0,100}?(?:laws of|state of|province of|country of)\s+"
-    r"(?!the\b|a\b|an\b)([A-Za-z][A-Za-z\s]{1,40}?)(?=[\.,;\n]|$)",
-    re.IGNORECASE,
-)
+@lru_cache(maxsize=1)
+def load_rules() -> dict[str, Any]:
+    for parent in Path(__file__).resolve().parents:
+        candidate = parent / "shared" / "contract-rules.json"
+        if candidate.is_file():
+            return json.loads(candidate.read_text(encoding="utf-8"))
+    raise FileNotFoundError("Could not find shared/contract-rules.json")
 
 
-def is_likely_contract(text: str) -> bool:
-    matches = CONTRACT_SIGNAL_PATTERN.findall(text)
-    return len(matches) >= CONTRACT_SIGNAL_THRESHOLD
+def _fill(template: str, **values: object) -> str:
+    return template.format(**values)
 
 
-def _snippet(text: str, match: re.Match, radius: int = 60) -> str:
+def _pattern(source: str) -> re.Pattern[str]:
+    return re.compile(source, re.IGNORECASE)
+
+
+def _snippet(text: str, match: re.Match[str], radius: int) -> str:
     start = max(match.start() - radius, 0)
     end = min(match.end() + radius, len(text))
     snippet = text[start:end].strip().replace("\n", " ")
     return f"...{snippet}..." if start > 0 or end < len(text) else snippet
 
 
-def _check_missing_clauses(text: str) -> list[dict[str, Any]]:
+def _flag(rule: dict[str, Any], evidence: str | None, **values: object) -> dict[str, Any]:
+    return {
+        "type": rule["type"],
+        "severity": rule["severity"],
+        "title": _fill(rule["title"], **values),
+        "description": _fill(rule["description"], **values),
+        "evidence": evidence,
+    }
+
+
+def is_likely_contract(text: str) -> bool:
+    signals = load_rules()["contractSignals"]
+    matches = _pattern(signals["pattern"]).findall(text)
+    return len(matches) >= int(signals["threshold"])
+
+
+def _check_missing_clauses(text: str, rules: dict[str, Any]) -> list[dict[str, Any]]:
+    spec = rules["missingClauses"]
     flags = []
-    for clause in STANDARD_CLAUSES:
-        if not re.search(clause["pattern"], text, re.IGNORECASE):
-            flags.append(
-                {
-                    "type": "missing_clause",
-                    "severity": "medium",
-                    "title": f"Missing: {clause['label']}",
-                    "description": (
-                        f"No {clause['label'].lower()} was detected in this document. "
-                        "Consider verifying whether this protection is covered elsewhere "
-                        "or should be added."
-                    ),
-                    "evidence": None,
-                }
+    for clause in spec["clauses"]:
+        if _pattern(clause["pattern"]).search(text):
+            continue
+        flags.append(
+            _flag(
+                spec,
+                None,
+                label=clause["label"],
+                label_lower=clause["label"].lower(),
             )
+        )
     return flags
 
 
-def _check_auto_renewal(text: str) -> list[dict[str, Any]]:
-    match = AUTO_RENEWAL_PATTERN.search(text)
+def _check_auto_renewal(text: str, rules: dict[str, Any]) -> list[dict[str, Any]]:
+    spec = rules["autoRenewal"]
+    match = _pattern(spec["pattern"]).search(text)
     if not match:
         return []
 
-    flags = [
-        {
-            "type": "auto_renewal",
-            "severity": "medium",
-            "title": "Automatic renewal clause detected",
-            "description": (
-                "This document automatically renews unless action is taken. "
-                "Confirm the opt-out notice window and calendar it."
-            ),
-            "evidence": _snippet(text, match),
-        }
-    ]
+    radius = int(rules["snippetRadius"])
+    flags = [_flag(spec["detected"], _snippet(text, match, radius))]
 
-    notice_match = NOTICE_PERIOD_PATTERN.search(text)
+    notice = spec["notice"]
+    notice_match = _pattern(notice["pattern"]).search(text)
     if notice_match:
         days = int(notice_match.group(1))
-        if days < NOTICE_PERIOD_MIN_DAYS:
+        if days < int(notice["minDays"]):
             flags.append(
-                {
-                    "type": "auto_renewal",
-                    "severity": "high",
-                    "title": "Short auto-renewal opt-out window",
-                    "description": (
-                        f"Auto-renewal requires only {days} days' written notice to cancel, "
-                        f"below the commonly recommended {NOTICE_PERIOD_MIN_DAYS}-day minimum."
-                    ),
-                    "evidence": _snippet(text, notice_match),
-                }
+                _flag(
+                    notice["short"],
+                    _snippet(text, notice_match, radius),
+                    days=days,
+                    min_days=notice["minDays"],
+                )
             )
     else:
-        flags.append(
-            {
-                "type": "auto_renewal",
-                "severity": "high",
-                "title": "Auto-renewal with no clear opt-out notice period",
-                "description": (
-                    "An auto-renewal clause was found but no explicit notice period "
-                    "(e.g. 'written notice of 30 days') could be identified."
-                ),
-                "evidence": None,
-            }
-        )
+        flags.append(_flag(notice["missing"], None))
     return flags
 
 
-def _check_payment_terms(text: str) -> list[dict[str, Any]]:
+def _check_payment_terms(text: str, rules: dict[str, Any]) -> list[dict[str, Any]]:
+    spec = rules["paymentTerms"]
+    radius = int(rules["snippetRadius"])
     flags = []
-    for match in NET_TERMS_PATTERN.finditer(text):
+    net = spec["net"]
+    for match in _pattern(net["pattern"]).finditer(text):
         days = int(match.group(1))
-        if days > NET_TERMS_MAX_DAYS:
+        if days > int(net["maxDays"]):
             flags.append(
-                {
-                    "type": "payment_terms",
-                    "severity": "medium",
-                    "title": f"Unusually long payment term (Net {days})",
-                    "description": (
-                        f"Payment terms of Net {days} exceed the common {NET_TERMS_MAX_DAYS}-day "
-                        "threshold, which may strain cash flow."
-                    ),
-                    "evidence": _snippet(text, match),
-                }
+                _flag(
+                    net,
+                    _snippet(text, match, radius),
+                    days=days,
+                    max_days=net["maxDays"],
+                )
             )
 
-    upfront_match = UPFRONT_PAYMENT_PATTERN.search(text)
+    upfront = spec["upfront"]
+    upfront_match = _pattern(upfront["pattern"]).search(text)
     if upfront_match:
-        flags.append(
-            {
-                "type": "payment_terms",
-                "severity": "medium",
-                "title": "Full payment required in advance",
-                "description": (
-                    "This document requires full payment upfront, which is less favorable "
-                    "than milestone- or delivery-based payment terms."
-                ),
-                "evidence": _snippet(text, upfront_match),
-            }
-        )
+        flags.append(_flag(upfront, _snippet(text, upfront_match, radius)))
     return flags
 
 
-def _check_jurisdiction_conflicts(text: str) -> list[dict[str, Any]]:
-    jurisdictions = {
-        re.sub(r"\s+", " ", match.group(1)).strip().rstrip(".")
-        for match in GOVERNING_LAW_JURISDICTION_PATTERN.finditer(text)
-    }
-    if len(jurisdictions) > 1:
-        match = next(GOVERNING_LAW_JURISDICTION_PATTERN.finditer(text))
-        return [
-            {
-                "type": "jurisdiction_conflict",
-                "severity": "high",
-                "title": "Conflicting governing law / jurisdiction clauses",
-                "description": (
-                    "Multiple different governing-law jurisdictions were found in this "
-                    f"document: {', '.join(sorted(jurisdictions))}. This may indicate "
-                    "conflicting or copy-pasted clauses that need legal review."
-                ),
-                "evidence": _snippet(text, match),
-            }
-        ]
-    return []
+def _clean_jurisdiction(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip().rstrip(".")
+
+
+def _check_jurisdiction(text: str, rules: dict[str, Any]) -> list[dict[str, Any]]:
+    spec = rules["jurisdiction"]
+    matches = list(_pattern(spec["pattern"]).finditer(text))
+    jurisdictions = {_clean_jurisdiction(match.group(1)) for match in matches}
+    jurisdictions.discard("")
+    if len(jurisdictions) <= 1:
+        return []
+    return [
+        _flag(
+            spec,
+            _snippet(text, matches[0], int(rules["snippetRadius"])),
+            names=", ".join(sorted(jurisdictions)),
+        )
+    ]
+
+
+_CHECKERS = {
+    "missingClauses": _check_missing_clauses,
+    "autoRenewal": _check_auto_renewal,
+    "paymentTerms": _check_payment_terms,
+    "jurisdiction": _check_jurisdiction,
+}
 
 
 def scan_contract(text: str) -> list[dict[str, Any]]:
     """Run all rule-based checks and return a flat list of risk flags."""
+    rules = load_rules()
     flags: list[dict[str, Any]] = []
-    flags.extend(_check_missing_clauses(text))
-    flags.extend(_check_auto_renewal(text))
-    flags.extend(_check_payment_terms(text))
-    flags.extend(_check_jurisdiction_conflicts(text))
+    for name in rules["checkOrder"]:
+        flags.extend(_CHECKERS[name](text, rules))
 
-    severity_order = {"high": 0, "medium": 1, "low": 2}
-    flags.sort(key=lambda f: severity_order.get(f["severity"], 3))
+    order = {severity: index for index, severity in enumerate(rules["severityOrder"])}
+    flags.sort(key=lambda flag: order.get(flag["severity"], len(order)))
     return flags

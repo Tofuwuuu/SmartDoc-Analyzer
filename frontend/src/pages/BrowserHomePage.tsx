@@ -52,8 +52,7 @@ export function BrowserHomePage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 sm:py-8">
       <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <p className="text-xs font-semibold uppercase text-brand-700">In your browser</p>
-        <h1 className="mt-1 text-2xl font-semibold text-slate-950">Analyze a document</h1>
+        <h1 className="text-2xl font-semibold text-slate-950">Analyze a document</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Upload a PDF or scan and get the extracted text, OCR for images, named entities and keywords, and
           rule-based contract risk flags.
