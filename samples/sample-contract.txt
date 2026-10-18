@@ -1,0 +1,42 @@
+SAMPLE CONTRACT FOR TESTING. NOT A REAL AGREEMENT.
+
+SERVICE AGREEMENT
+
+This Service Agreement ("Agreement") is made on March 3, 2026, between
+Bluefern Supplies Ltd. ("Provider"), represented by Pat Example, and
+Harbor Lane Bakery Inc. ("Client"), represented by Sam Placeholder.
+
+1. Services
+Provider will deliver baking ingredients and packaging to Client every
+week, as listed in Schedule A.
+
+2. Fees and Payment
+Client will pay Provider $4,500 per month. Client pays the
+full amount due upfront for the first month. Later invoices are payable
+Net 90.
+Late payments incur a fee of 5% per month.
+
+3. Term and Renewal
+This Agreement starts on April 1, 2026, and lasts 12 months. It
+automatically renews for another 12 months unless either party gives
+written notice of 15 days before the end of the current term.
+
+4. Termination
+Client may end this Agreement early only by paying a cancellation fee
+equal to six months of fees.
+
+5. Liability
+Client accepts unlimited liability for any loss, damage, or claim
+arising from its use of the delivered goods. Provider's liability is
+limited to the fees paid in the previous month.
+
+6. Confidentiality
+Both parties will keep the terms of this Agreement confidential.
+
+7. Governing Law
+This Agreement is governed by the laws of the State of Example.
+This Agreement is also governed by the laws of the State of Sample.
+
+Signed:
+Pat Example, Bluefern Supplies Ltd.
+Sam Placeholder, Harbor Lane Bakery Inc.
