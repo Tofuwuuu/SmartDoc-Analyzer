@@ -52,7 +52,7 @@ npm run preview
 
 `npm run preview` serves `dist` with no API. Try the sample contract, then upload `frontend/public/samples/sample-scan.png`.
 
-## Run it locally
+## Run the full app locally
 
 You need Docker installed. Start the API, its database, and the frontend:
 
@@ -78,9 +78,9 @@ docker compose down
 
 ## Running the backend
 
-The API still extracts text with PyMuPDF and Tesseract, runs spaCy, stores documents in Postgres, and caches by file hash in Redis. Upload, list, and every per-document route require a signed-in user, and a document is returned only to its owner. `JWT_SECRET` has no default and rejects `change-me-in-production`.
+The API extracts text with PyMuPDF and Tesseract, runs spaCy, stores documents in Postgres, and caches by file hash in Redis. Upload, list, and every per-document route require a signed-in user, and a document is returned only to its owner. Outside Docker, `JWT_SECRET` has no default. It must be at least 16 characters, and the API rejects `change-me-in-production`, `secret`, `changeme`, and the placeholder and old value from `backend/.env.example`.
 
-Docker Compose builds the frontend with `VITE_API_URL`, so that image talks to the local API. It is not the Vercel demo. See Run it locally for the command. Copying `.env.example` to `.env` and `backend/.env.example` to `backend/.env` is optional. Without them, Compose uses local defaults, including a dev-only `JWT_SECRET`. Set `JWT_SECRET` in the root `.env` to use your own.
+Docker Compose builds the frontend with `VITE_API_URL`, so that image talks to the local API. It is not the Vercel demo. See Run the full app locally for the command. Copying `.env.example` to `.env` and `backend/.env.example` to `backend/.env` is optional. Without them, Compose uses local defaults, including a dev-only `JWT_SECRET`. Set `JWT_SECRET` in the root `.env` to use your own.
 
 - Frontend (API mode): http://localhost:5173
 - API docs: http://localhost:8000/docs
