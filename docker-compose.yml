@@ -34,11 +34,16 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     restart: unless-stopped
+    # Optional. Compose runs with the defaults below when backend/.env is missing.
     env_file:
-      - ./backend/.env
+      - path: ./backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-smartdoc}:${POSTGRES_PASSWORD:-smartdoc}@db:5432/${POSTGRES_DB:-smartdoc}
       REDIS_URL: redis://redis:6379/0
+      # Dev-only default so a fresh clone starts. Set JWT_SECRET in the root .env
+      # (or your shell) to override it. Never use this value outside your machine.
+      JWT_SECRET: ${JWT_SECRET:-dev-only-local-compose-secret-not-for-production}
     volumes:
       - uploads_data:/app/uploads
     ports:
@@ -68,7 +73,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
       interval: 15s
       timeout: 5s
       retries: 5
