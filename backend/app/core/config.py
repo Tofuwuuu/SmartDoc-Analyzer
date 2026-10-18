@@ -5,7 +5,14 @@ from typing import List
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-INSECURE_JWT_SECRETS = {"change-me-in-production", "secret", "changeme"}
+INSECURE_JWT_SECRETS = {
+    "change-me-in-production",
+    "secret",
+    "changeme",
+    # Values that were or are published in this repo's .env.example.
+    "local-docker-only-change-this",
+    "replace-with-output-of-openssl-rand-hex-32",
+}
 
 
 def _parse_csv_or_json_list(raw: str) -> List[str]:
