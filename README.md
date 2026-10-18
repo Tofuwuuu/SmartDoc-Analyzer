@@ -62,7 +62,7 @@ docker compose up --build
 
 Then open http://localhost:5173. On first start it creates the tables. Nothing connects to the live site.
 
-Sign up in the app, or create a demo user (`demo@smartdoc.local` / `smartdoc-demo`):
+Sign up in the app, or create a demo user (`demo@example.com` / `smartdoc-demo`):
 
 ```bash
 docker compose exec api python -m app.seed

@@ -1,4 +1,4 @@
-"""Create an optional local demo user.
+"""Create an optional local demo user (example.com, since login rejects .local).
 
     docker compose exec api python -m app.seed
 
@@ -14,7 +14,7 @@ from app.core.database import SessionLocal
 from app.core.security import get_password_hash
 from app.models.user import User
 
-DEFAULT_EMAIL = "demo@smartdoc.local"
+DEFAULT_EMAIL = "demo@example.com"
 DEFAULT_PASSWORD = "smartdoc-demo"
 
 
