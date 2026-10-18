@@ -68,7 +68,7 @@ Sign up in the app, or create a demo user (`demo@example.com` / `smartdoc-demo`)
 docker compose exec api python -m app.seed
 ```
 
-Upload `samples/sample-contract.pdf`, a made-up contract that trips the contract flags.
+Upload `samples/sample-contract.pdf`, a made-up contract that trips every contract rule. Its text is in `samples/sample-contract.txt`. Regenerate the PDF with `python3 backend/scripts/make_sample_contract.py` (needs PyMuPDF).
 
 Press Ctrl+C to stop it, or run this from another terminal:
 
