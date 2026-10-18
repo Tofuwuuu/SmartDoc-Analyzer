@@ -52,17 +52,35 @@ npm run preview
 
 `npm run preview` serves `dist` with no API. Try the sample contract, then upload `frontend/public/samples/sample-scan.png`.
 
+## Run it locally
+
+You need Docker installed. Start the API, its database, and the frontend:
+
+```bash
+docker compose up --build
+```
+
+Then open http://localhost:5173. On first start it creates the tables. Nothing connects to the live site.
+
+Sign up in the app, or create a demo user (`demo@smartdoc.local` / `smartdoc-demo`):
+
+```bash
+docker compose exec api python -m app.seed
+```
+
+Upload `samples/sample-contract.pdf`, a made-up contract that trips the contract flags.
+
+Press Ctrl+C to stop it, or run this from another terminal:
+
+```bash
+docker compose down
+```
+
 ## Running the backend
 
 The API still extracts text with PyMuPDF and Tesseract, runs spaCy, stores documents in Postgres, and caches by file hash in Redis. Upload, list, and every per-document route require a signed-in user, and a document is returned only to its owner. `JWT_SECRET` has no default and rejects `change-me-in-production`.
 
-Docker Compose builds the frontend with `VITE_API_URL`, so that image talks to the local API. It is not the Vercel demo.
-
-```bash
-cp .env.example .env
-cp backend/.env.example backend/.env
-docker compose up --build
-```
+Docker Compose builds the frontend with `VITE_API_URL`, so that image talks to the local API. It is not the Vercel demo. See Run it locally for the command. Copying `.env.example` to `.env` and `backend/.env.example` to `backend/.env` is optional. Without them, Compose uses local defaults, including a dev-only `JWT_SECRET`. Set `JWT_SECRET` in the root `.env` to use your own.
 
 - Frontend (API mode): http://localhost:5173
 - API docs: http://localhost:8000/docs
@@ -124,6 +142,7 @@ None.
 | Variable | Description |
 |---|---|
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials for the `db` service |
+| `JWT_SECRET` | API signing secret under Compose. Unset means a dev-only default. |
 | `VITE_API_URL` | Build arg for the Docker frontend image only |
 
 ## Local API
@@ -150,6 +169,7 @@ frontend/          Vite app. This is what Vercel builds.
   src/analysis/    pdf.js, tesseract.js, compromise, and the rule checker
 shared/            contract-rules.json, read by the browser and the Python API
 backend/           FastAPI app for localhost / Docker only
+samples/           Fictional sample contract for the local API (not built by Vercel)
 vercel.json        Static build for a Vercel project at the repo root
 docker-compose.yml Local API stack
 ```
