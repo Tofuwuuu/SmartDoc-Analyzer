@@ -1,185 +1,94 @@
 # SmartDoc Analyzer
 
-Upload a PDF or scan and get the extracted text, OCR for images, named entities and keywords, and rule-based contract risk flags.
+Drop in a PDF or a scan. You get the text back, OCR for images, names and keywords, and flags for risky contract terms.
 
-## Live demo
+The [live demo](https://smartdoc-analyzer.vercel.app) runs entirely in your browser, so nothing gets uploaded. "Try a sample document" loads a short contract. Limits are 5 MB and 10 pages.
 
-The live demo runs entirely in your browser. It extracts text, reads scans, finds names and keywords, and checks contract rules without uploading anything. The Python backend in this repo does the same job with spaCy, which finds more kinds of entities. To run it locally, see Running the backend.
+The Python backend in this repo does the same job with spaCy, which finds more kinds of entities, and stores documents per user.
 
-There is no account, database, or API in this build. "Try a sample document" loads a short bundled contract. Uploads are limited to 5 MB and 10 pages. PDF text uses pdf.js, and a page with almost no text layer is rendered and read with tesseract.js. Names and keywords use compromise. Contract rules come from `shared/contract-rules.json`, which the TypeScript checker and `backend/app/services/compliance.py` both read.
-
-### Deploy
-
-Import this repository in Vercel. Do not set a custom root unless you intend to use `frontend/` as the project root.
-
-- Repository root: `vercel.json` installs and builds `frontend/`, and publishes `frontend/dist`.
-- Project root `frontend/`: `frontend/vercel.json` builds the Vite app the same way.
-
-No Vercel environment variables are required. Do not set `VITE_API_URL`. If that variable is present at build time, the frontend calls the FastAPI backend instead of analyzing in the browser, and the live demo would depend on a server that is not deployed.
-
-`backend/railway.json` has been removed. This project is not deployed to Railway, Render, Fly, or any container host.
-
-## What the browser build does differently from the local API
-
-Contract rule text comes from `shared/contract-rules.json`. `frontend/src/analysis/compliance.test.ts` checks the TypeScript checker against that file and against sample output from `compliance.py`.
-
-These parts are not the same engine, so their output can differ:
-
-- Entities and keywords come from compromise, not spaCy `en_core_web_sm`. Labels are `PERSON`, `ORG`, and `PLACE`. The keyword list is noun terms, not spaCy lemmas.
-- Sentence counts use compromise's sentence splitter.
-- The overview sentence uses the same shape as the Python summary (word count, sentence count, top entities), but the entity names inside it follow compromise.
-- PDF text comes from pdf.js, not PyMuPDF, so spacing can differ.
-- OCR comes from tesseract.js, not the Tesseract binary used by the API, so a scan can read slightly differently.
-
-## Run the browser demo locally
+## Run the full app
 
 ```bash
-cd frontend
-npm install
-npm test
-npm run dev
-```
-
-Open http://localhost:5173. Leave `VITE_API_URL` unset.
-
-To check the production build the way Vercel will:
-
-```bash
-cd frontend
-npm run build
-npm run preview
-```
-
-`npm run preview` serves `dist` with no API. Try the sample contract, then upload `frontend/public/samples/sample-scan.png`.
-
-## Run the full app locally
-
-You need Docker installed. Start the API, its database, and the frontend:
-
-```bash
+cp .env.example .env
 docker compose up --build
-```
-
-Then open http://localhost:5173. On first start it creates the tables. Nothing connects to the live site.
-
-Sign up in the app, or create a demo user (`demo@example.com` / `smartdoc-demo`):
-
-```bash
+docker compose exec api alembic upgrade head
 docker compose exec api python -m app.seed
 ```
 
-Upload `samples/sample-contract.pdf`, a made-up contract that trips every contract rule. Its text is in `samples/sample-contract.txt`. Regenerate the PDF with `python3 backend/scripts/make_sample_contract.py` (needs PyMuPDF).
+The API container already runs `alembic upgrade head` before it starts, so the third line is a safety net. The seed creates `demo@example.com` / `smartdoc-demo`, or you can sign up in the app. The `.env` is optional; without it Compose uses local defaults, including a dev-only `JWT_SECRET`.
 
-Press Ctrl+C to stop it, or run this from another terminal:
+Open http://localhost:5173. API docs are at http://localhost:8000/docs and health at http://localhost:8000/api/v1/health. Stop with `docker compose down`.
+
+Upload `samples/sample-contract.pdf` to see every rule fire. It's a made-up contract; its text is in `samples/sample-contract.txt`. Rebuild it with `python3 backend/scripts/make_sample_contract.py` (needs PyMuPDF).
+
+## Run just the browser version
 
 ```bash
-docker compose down
+cd frontend && npm install && npm test && npm run dev
 ```
 
-## Running the backend
+Leave `VITE_API_URL` unset. If it's set, the frontend calls the API instead of doing the work itself. `npm run build && npm run preview` serves the production build with no API.
 
-The API extracts text with PyMuPDF and Tesseract, runs spaCy, stores documents in Postgres, and caches by file hash in Redis. Upload, list, and every per-document route require a signed-in user, and a document is returned only to its owner. Outside Docker, `JWT_SECRET` has no default. It must be at least 16 characters, and the API rejects `change-me-in-production`, `secret`, `changeme`, and the placeholder and old value from `backend/.env.example`.
+## Browser vs. API
 
-Docker Compose builds the frontend with `VITE_API_URL`, so that image talks to the local API. It is not the Vercel demo. See Run the full app locally for the command. Copying `.env.example` to `.env` and `backend/.env.example` to `backend/.env` is optional. Without them, Compose uses local defaults, including a dev-only `JWT_SECRET`. Set `JWT_SECRET` in the root `.env` to use your own.
+Both read contract rules from `shared/contract-rules.json`, and `frontend/src/analysis/compliance.test.ts` checks the TypeScript checker against that file and against output from `compliance.py`. The rest is different code, so results can differ:
 
-- Frontend (API mode): http://localhost:5173
-- API docs: http://localhost:8000/docs
-- Health: http://localhost:8000/api/v1/health
+- Browser: pdf.js for text, tesseract.js for scans, compromise for entities (`PERSON`, `ORG`, `PLACE`), noun keywords, and sentence splitting.
+- API: PyMuPDF, the Tesseract binary, spaCy `en_core_web_sm` with lemmas. It stores documents in Postgres and caches by file hash in Redis.
 
-The API container runs `alembic upgrade head` before Uvicorn. Sign up in the UI, then upload. Anonymous upload and the shared document list are no longer available.
+The overview line is word count, sentence count and top entities in both. It isn't generated text.
 
-### API without Docker
+Contract flags cover missing clauses, auto-renewal, long or upfront payment terms and conflicting governing law. They're keyword and regex rules, a review aid and not legal advice.
+
+## API without Docker
+
+You need Postgres, Redis and `tesseract-ocr` running.
 
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
-cp .env.example .env
+cp .env.example .env   # set JWT_SECRET
 alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 
-Postgres, Redis, and the `tesseract-ocr` binary must already be running. Set `JWT_SECRET` in `backend/.env` before starting. Point a frontend at it with `frontend/.env`:
+Then put `VITE_API_URL=http://localhost:8000/api/v1` in `frontend/.env` and run `npm run dev` there.
 
-```bash
-VITE_API_URL=http://localhost:8000/api/v1
-```
+`JWT_SECRET` has no default outside Docker. It needs 16+ characters, and the API refuses `change-me-in-production`, `secret`, `changeme`, and the old values from `backend/.env.example`.
 
-Then `npm run dev` in `frontend/`.
+Everything except register, login and health needs a signed-in user, and you only ever see your own documents.
 
-## Environment variables
-
-### Vercel
-
-None.
-
-### Frontend (`frontend/.env`, local API mode only)
-
-| Variable | Description |
-|---|---|
-| `VITE_API_URL` | FastAPI base URL, including `/api/v1`. Unset means in-browser analysis. |
-
-### Backend (`backend/.env`, local API only)
-
-| Variable | Description | Default |
+| Method | Path | |
 |---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://smartdoc:smartdoc@localhost:5432/smartdoc` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
-| `JWT_SECRET` | Required signing secret, at least 16 characters | none |
-| `JWT_ALGORITHM` | JWT signing algorithm | `HS256` |
-| `JWT_EXPIRE_MINUTES` | Access token lifetime in minutes | `10080` (7 days) |
-| `SPACY_MODEL` | spaCy model name | `en_core_web_sm` |
-| `UPLOAD_DIR` | Local upload directory | `uploads` |
-| `MAX_UPLOAD_SIZE_MB` | Max upload size for the local API | `25` |
-| `CACHE_TTL_SECONDS` | Redis cache TTL | `86400` |
-| `CORS_ORIGINS` | Allowed origins (JSON array or comma-separated) | `http://localhost:5173,http://localhost:3000` |
-| `DEBUG` | Include exception details in 500 responses | `false` |
+| `POST` | `/api/v1/documents/upload` | PDF or image, processed synchronously |
+| `GET` | `/api/v1/documents` | Your documents |
+| `GET` | `/api/v1/documents/{id}` | Metadata and text, 404 if not yours |
+| `GET` | `/api/v1/documents/{id}/insights` | Entities, overview, risk flags |
+| `POST` | `/api/v1/auth/register` | `email`, `password` |
+| `POST` | `/api/v1/auth/login` | Returns a JWT |
+| `GET` | `/api/v1/health` | API, database and Redis status |
 
-### Root (`.env`, Docker Compose)
+Errors look like `{"detail": "message"}`.
 
-| Variable | Description |
-|---|---|
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials for the `db` service |
-| `JWT_SECRET` | API signing secret under Compose. Unset means a dev-only default. |
-| `VITE_API_URL` | Build arg for the Docker frontend image only |
+Backend settings (`backend/.env`): `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_ALGORITHM` (`HS256`), `JWT_EXPIRE_MINUTES` (`10080`), `SPACY_MODEL`, `UPLOAD_DIR` (`uploads`), `MAX_UPLOAD_SIZE_MB` (`25`), `CACHE_TTL_SECONDS` (`86400`), `CORS_ORIGINS`, `DEBUG`. Root `.env` for Compose: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `JWT_SECRET`, `VITE_API_URL`.
 
-## Local API
+## Deploying
 
-All routes are under `/api/v1`. Errors return `{"detail": "message"}`.
+Import the repo into Vercel. The root `vercel.json` builds `frontend/` and publishes `frontend/dist`, or set the project root to `frontend/` and its own `vercel.json` does the same. No env vars, and don't set `VITE_API_URL`. The backend isn't deployed anywhere.
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `POST` | `/documents/upload` | Required | Upload a PDF or image. Processing is synchronous. |
-| `GET` | `/documents` | Required | List documents owned by the current user. |
-| `GET` | `/documents/{id}` | Required | Metadata and extracted text. 404 if it is not owned by the caller. |
-| `GET` | `/documents/{id}/insights` | Required | Entities, overview, and risk flags. 404 if it is not owned by the caller. |
-| `POST` | `/auth/register` | None | Create a user (`email`, `password`). |
-| `POST` | `/auth/login` | None | Exchange credentials for a JWT. |
-| `GET` | `/health` | None | API, database, and Redis status. |
-
-Contract flags (missing clauses, auto-renewal, long or upfront payment terms, conflicting governing law) are keyword and regex rules. They are a review aid, not legal advice. The overview is word and sentence counts plus top entities, not generated prose.
-
-## Project structure
+## Layout
 
 ```
-frontend/          Vite app. This is what Vercel builds.
-  public/samples/  Bundled contract PDF and a sample scan
-  src/analysis/    pdf.js, tesseract.js, compromise, and the rule checker
-shared/            contract-rules.json, read by the browser and the Python API
-backend/           FastAPI app for localhost / Docker only
-samples/           Fictional sample contract for the local API (not built by Vercel)
-vercel.json        Static build for a Vercel project at the repo root
-docker-compose.yml Local API stack
+frontend/          Vite app, what Vercel builds
+  public/samples/  sample contract PDF and scan
+  src/analysis/    pdf.js, tesseract.js, compromise, rule checker
+shared/            contract-rules.json
+backend/           FastAPI, local and Docker only
+samples/           sample contract for the API
 ```
 
-Regenerate the sample PDF, sample scan, and compliance fixture (from the repo root, with Pillow installed):
+`python3 frontend/scripts/generate_samples.py` regenerates the sample PDF, scan and compliance fixture (needs Pillow).
 
-```bash
-python3 frontend/scripts/generate_samples.py
-```
-
-## License
-
-[MIT](LICENSE).
+MIT. See [LICENSE](LICENSE).
